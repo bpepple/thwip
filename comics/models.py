@@ -2,7 +2,6 @@ import datetime
 
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Avg
 from django.urls import reverse
 from django.utils.functional import cached_property
 from solo.models import SingletonModel
