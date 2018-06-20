@@ -9,6 +9,12 @@ djangorestframework = "*"
 django-solo = "*"
 pillow = "*"
 "psycopg2-binary" = "*"
+requests = "*"
+requests-cache = "*"
+"beautifulsoup4" = "*"
+natsort = "*"
+"pypdf2" = "*"
+redis = "*"
 
 [dev-packages]
 coverage = "*"
