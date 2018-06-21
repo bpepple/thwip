@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'solo.apps.SoloAppConfig',
     'comics',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
