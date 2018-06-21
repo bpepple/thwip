@@ -27,16 +27,20 @@ class TestImportComics(TestCase):
         cls.character_cvid = 2357
 
         cls.dc = Publisher.objects.create(
-            cvid=cls.pub_cvid, name='DC Comics')
+            cvid=cls.pub_cvid, name='DC Comics', slug='dc-comics')
         cls.bat = Series.objects.create(
-            cvid=cls.ser_cvid, name='Batman', publisher=cls.dc)
-        cls.jsa = Team.objects.create(cvid=cls.team_cvid, name='Justice Society of America')
-        cls.arc = Arc.objects.create(cvid=cls.arc_cvid, name='The Death of Captain America')
-        cls.creator = Creator.objects.create(cvid=cls.creator_cvid, name='Ed Brubaker')
+            cvid=cls.ser_cvid, name='Batman', slug='batman', publisher=cls.dc)
+        cls.jsa = Team.objects.create(cvid=cls.team_cvid, name='Justice Society of America',
+                                      slug='justice-society-of-america')
+        cls.arc = Arc.objects.create(cvid=cls.arc_cvid, name='The Death of Captain America',
+                                     slug='the-death-of-captain-america')
+        cls.creator = Creator.objects.create(cvid=cls.creator_cvid, name='Ed Brubaker',
+                                             slug='ed-brubaker')
         cls.issue = Issue.objects.create(series=cls.bat, cvid=cls.issue_cvid,
-                                         mod_ts=mod_time, date=issue_date,
+                                         slug='batman-713', mod_ts=mod_time, date=issue_date,
                                          number='713')
-        cls.aquaman = Character.objects.create(cvid=cls.character_cvid, name='Aquaman')
+        cls.aquaman = Character.objects.create(cvid=cls.character_cvid, name='Aquaman',
+                                               slug='aquaman')
 
         test_data_dir = settings.BASE_DIR + os.sep + 'comics/fixtures'
         Settings.objects.create(comics_directory=test_data_dir,

@@ -42,12 +42,13 @@ class Arc(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
     name = models.CharField('Arc Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     image = models.ImageField(upload_to='images/arcs/',
                               max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('arc:detail', args=[self.id])
+        return reverse('arc:detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -60,12 +61,13 @@ class Team(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
     name = models.CharField('Team Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     image = models.ImageField(
         upload_to='images/teams/', max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('team:detail', args=[self.id])
+        return reverse('team:detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -78,13 +80,14 @@ class Character(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
     name = models.CharField('Character Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     teams = models.ManyToManyField(Team, blank=True)
     image = models.ImageField(
         upload_to='images/characters/', max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('character:detail', args=[self.id])
+        return reverse('character:detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -97,12 +100,13 @@ class Creator(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
     name = models.CharField('Creator Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     image = models.ImageField(
         upload_to='images/creators/', max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('creator:detail', args=[self.id])
+        return reverse('creator:detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -115,12 +119,13 @@ class Publisher(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', null=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
     name = models.CharField('Series Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     logo = models.ImageField(
         upload_to='images/publishers/', max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('publisher:detail', args=[self.id])
+        return reverse('publisher:detail', args=[self.slug])
 
     def series_count(self):
         return self.series_set.all().count()
@@ -139,6 +144,7 @@ class Series(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200, blank=True)
     name = models.CharField('Series Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     sort_title = models.CharField('Sort Name', max_length=200)
     publisher = models.ForeignKey(
         Publisher, on_delete=models.CASCADE, null=True, blank=True)
@@ -147,7 +153,7 @@ class Series(models.Model):
     desc = models.TextField('Description', max_length=500, blank=True)
 
     def get_absolute_url(self):
-        return reverse('series:detail', args=[self.id])
+        return reverse('series:detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -178,6 +184,7 @@ class Issue(models.Model):
     cvurl = models.URLField('ComicVine URL', max_length=200, blank=True)
     series = models.ForeignKey(Series, on_delete=models.CASCADE, blank=True)
     name = models.CharField('Issue Name', max_length=350, blank=True)
+    slug = models.SlugField(max_length=350, unique=True)
     number = models.CharField('Issue Number', max_length=25)
     date = models.DateField('Cover Date', blank=True)
     desc = models.TextField('Description', max_length=500, blank=True)
@@ -198,7 +205,7 @@ class Issue(models.Model):
                                        auto_now_add=True)
 
     def get_absolute_url(self):
-        return reverse('issue:detail', args=[self.id])
+        return reverse('issue:detail', args=[self.slug])
 
     def __str__(self):
         return self.series.name + ' #' + str(self.number)
