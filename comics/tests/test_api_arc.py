@@ -1,62 +1,67 @@
+import json
+
 from django.contrib.auth.models import User
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient, APITestCase
 
 from comics.models import Arc
 from comics.serializers import ArcSerializer
 
 
-class TestCaseBase(TestCase):
-
-    def _create_user(self):
-        user = User.objects.create(username='brian')
-        user.set_password('1234')
-        user.save()
-
-        return user
-
-    def _client_login(self):
-        self.client.login(username='brian', password='1234')
-
-
-class GetAllArcsTest(TestCaseBase):
+class GetAllArcsTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls._create_user(cls)
-
         Arc.objects.create(cvid='1234', cvurl='http://1.com',
                            name='World War Hulk', slug='world-war-hulk')
         Arc.objects.create(cvid='4321', cvurl='http://2.com',
                            name='Final Crisis', slug='final-crisis')
 
     def setUp(self):
-        self._client_login()
+        self.email = 'brian@test.com'
+        self.username = 'brian'
+        self.password = 'test!thwip'
+        self.user = User.objects.create_user(
+            self.username, self.email, self.password)
+
+        self.client = APIClient()
+        self.token = Token.objects.get(user__username=self.username)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_view_url_accessible_by_name(self):
         resp = self.client.get(reverse('api:arc-list'))
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK,
+                         "REST token-auth failed")
+        self.assertTrue(len(json.loads(resp.content)) == Arc.objects.count())
 
     def test_unauthorized_view_url(self):
-        self.client.logout()
+        # Clear the credentials.
+        self.client.credentials()
         resp = self.client.get(reverse('api:arc-list'))
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class GetSingleArcTest(TestCaseBase):
+class GetSingleArcTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls._create_user(cls)
-
-        cls.hulk = Arc.objects.create(
-            cvid='1234', cvurl='http://1.com', name='World War Hulk', slug='world-war-hulk')
-        cls.crisis = Arc.objects.create(
-            cvid='4321', cvurl='http://2.com', name='Final Crisis', slug='final-crisis')
+        cls.hulk = Arc.objects.create(cvid='2345', cvurl='http://1.com',
+                                      name='Hulk', slug='hulk')
+        cls.crisis = Arc.objects.create(cvid='6789', cvurl='http://2.com',
+                                        name='Infinite Crisis', slug='infinite-crisis')
 
     def setUp(self):
-        self._client_login()
+        self.email = 'tom@test.com'
+        self.username = 'tom'
+        self.password = 'test!thwip'
+        self.user = User.objects.create_user(
+            self.username, self.email, self.password)
+
+        self.client = APIClient()
+        self.token = Token.objects.get(user__username=self.username)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_get_valid_single_arc(self):
         response = self.client.get(
@@ -72,7 +77,8 @@ class GetSingleArcTest(TestCaseBase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unauthorized_view_url(self):
-        self.client.logout()
+        # Clear the credentials.
+        self.client.credentials()
         response = self.client.get(
             reverse('api:arc-detail', kwargs={'slug': self.hulk.slug}))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
