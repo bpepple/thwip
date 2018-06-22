@@ -104,3 +104,6 @@ ENV/
 .project
 .pydevproject
 .settings/
+
+# React files
+node_modules/
