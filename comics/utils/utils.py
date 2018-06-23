@@ -7,7 +7,7 @@ from PIL import Image
 from django.conf import settings
 
 NORMAL_WIDTH = 320
-NORMAL_HEIGHT = 487
+NORMAL_HEIGHT = 480
 
 
 def resize_images(path, folder):
