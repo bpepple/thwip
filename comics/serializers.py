@@ -29,14 +29,24 @@ class PublisherSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'slug'
 
 
+class SeriesCoverSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Issue
+        fields = ('cover',)
+        lookup_field = 'slug'
+
+
 class SeriesSerializer(serializers.HyperlinkedModelSerializer):
     publisher = serializers.HyperlinkedRelatedField(
         many=False, read_only=True, view_name='api:publisher-detail', lookup_field='slug')
+    issue_count = serializers.ReadOnlyField
+    cover = SeriesCoverSerializer(source='issue_set.first', many=False)
 
     class Meta:
         model = Series
-        fields = ('slug', 'cvurl', 'name', 'sort_title',
-                  'publisher', 'year', 'desc')
+        fields = ('slug', 'cvurl', 'name', 'sort_title', 'publisher',
+                  'year', 'desc', 'issue_count', 'cover')
         lookup_field = 'slug'
 
 
