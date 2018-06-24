@@ -221,7 +221,7 @@ class Role(models.Model):
         return self.name
 
 
-class Roles(models.Model):
+class Credits(models.Model):
     creator = models.ForeignKey(Creator, on_delete=models.CASCADE)
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     role = models.ManyToManyField(Role)
@@ -230,5 +230,5 @@ class Roles(models.Model):
         return self.issue.series.name + ' #' + str(self.issue.number) + ' - ' + self.creator.name
 
     class Meta:
-        verbose_name_plural = "Roles"
+        verbose_name_plural = "Credits"
         ordering = ['creator__name']

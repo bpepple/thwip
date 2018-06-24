@@ -15,7 +15,7 @@ import requests
 import requests_cache
 
 from comics.models import (Arc, Character, Creator, Issue,
-                           Publisher, Role, Roles, Series,
+                           Publisher, Role, Credits, Series,
                            Team, Settings)
 
 from . import utils
@@ -793,7 +793,7 @@ class ComicImporter(object):
                 creator_obj, c_create = Creator.objects.get_or_create(
                     cvid=p['id'],)
 
-                role_obj = Roles.objects.create(
+                credits_obj = Credits.objects.create(
                     creator=creator_obj, issue=issue_obj)
 
                 roles = p['role'].split(',')
@@ -801,7 +801,7 @@ class ComicImporter(object):
                     # Remove any whitespace
                     role = role.strip()
                     r, r_create = Role.objects.get_or_create(name=role.title())
-                    role_obj.role.add(r)
+                    credits_obj.role.add(r)
 
                 if c_create:
                     new_slug = orig = slugify(p['name'])
