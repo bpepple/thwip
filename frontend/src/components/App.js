@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import DataProvider from "./DataProvider";
-import Table from "./Table";
+import SeriesListCard from "./SeriesListCard";
 
 const App = () => (
-  <DataProvider endpoint="api/publisher/" 
-                render={data => <Table data={data} />} />
+  <DataProvider endpoint="api/series/"
+                render={data => <SeriesListCard data={data} />} />
 );
 
 const wrapper = document.getElementById("app");
