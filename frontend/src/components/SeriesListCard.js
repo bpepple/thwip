@@ -17,13 +17,13 @@ const SeriesListCard = ({ data }) =>
             </div>
             <div className="card-image">
               <figure className="image is-2by3">
-                <img src={el.cover.cover} alt="Placeholder image" key={uuid()}></img>
+                <img src={el.image.image} alt="Placeholder image" key={uuid()}></img>
               </figure>
             </div>
             <footer className="card-footer">
               <p className="card-footer-item">
                 {/* Need to pluralize 'Books' eventually */}
-                <span key={uuid()}>{el.issue_count} Book</span>
+                <span key={uuid()}>{el.issue_count} Books</span>
               </p>
               <a href="#" className="card-footer-item" key={uuid()}>Open Series</a>
             </footer>
