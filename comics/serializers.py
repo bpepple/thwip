@@ -25,7 +25,7 @@ class PublisherSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Publisher
-        fields = ('slug', 'cvurl', 'name', 'desc', 'logo')
+        fields = ('slug', 'cvurl', 'name', 'desc', 'image')
         lookup_field = 'slug'
 
 

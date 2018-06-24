@@ -15,11 +15,6 @@ def pre_delete_character(sender, instance, **kwargs):
             team.delete()
 
 
-def pre_delete_publisher(sender, instance, **kwargs):
-    if (instance.logo):
-        instance.logo.delete(False)
-
-
 def pre_delete_issue(sender, instance, **kwargs):
     if (instance.cover):
         instance.cover.delete(False)

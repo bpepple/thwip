@@ -680,7 +680,7 @@ class ComicImporter(object):
             if p_create:
                 p = self.getPublisher(issue_response)
                 if p is not None:
-                    publisher_obj.logo = utils.resize_images(
+                    publisher_obj.image = utils.resize_images(
                         p['image'], PUBLISHERS_FOLDER)
                     publisher_obj.cvid = int(p['cvid'])
                     publisher_obj.cvurl = p['cvurl']
