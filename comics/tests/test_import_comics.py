@@ -114,4 +114,4 @@ class TestImportComics(TestCase):
 
         self.assertEqual(str(issue), 'Captain Atom #078')
         self.assertEqual(issue.date, datetime.date(cover_date))
-        self.assertTrue(issue.cover)
+        self.assertTrue(issue.image)

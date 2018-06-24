@@ -17,7 +17,7 @@ class IssueSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Issue
         fields = ('slug', 'cvurl', 'series', 'name', 'number', 'date',
-                  'page_count', 'status', 'desc', 'characters', 'teams', 'arcs', 'cover')
+                  'page_count', 'status', 'desc', 'characters', 'teams', 'arcs', 'image')
         lookup_field = 'slug'
 
 
@@ -29,11 +29,11 @@ class PublisherSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'slug'
 
 
-class SeriesCoverSerializer(serializers.HyperlinkedModelSerializer):
+class SeriesImageSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('cover',)
+        fields = ('image',)
         lookup_field = 'slug'
 
 
@@ -41,12 +41,12 @@ class SeriesSerializer(serializers.HyperlinkedModelSerializer):
     publisher = serializers.HyperlinkedRelatedField(
         many=False, read_only=True, view_name='api:publisher-detail', lookup_field='slug')
     issue_count = serializers.ReadOnlyField
-    cover = SeriesCoverSerializer(source='issue_set.first', many=False)
+    image = SeriesImageSerializer(source='issue_set.first', many=False)
 
     class Meta:
         model = Series
         fields = ('slug', 'cvurl', 'name', 'sort_title', 'publisher',
-                  'year', 'desc', 'issue_count', 'cover')
+                  'year', 'desc', 'issue_count', 'image')
         lookup_field = 'slug'
 
 

@@ -192,7 +192,7 @@ class Issue(models.Model):
     characters = models.ManyToManyField(Character, blank=True)
     teams = models.ManyToManyField(Team, blank=True)
     file = models.CharField('File Path', max_length=300)
-    cover = models.ImageField(
+    image = models.ImageField(
         'Cover Image', upload_to='images/issues/', max_length=150, blank=True)
     status = models.PositiveSmallIntegerField(
         'Status', choices=STATUS_CHOICES, default=0, blank=True)
