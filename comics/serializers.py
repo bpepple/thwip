@@ -16,7 +16,7 @@ class IssueSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('slug', 'cvurl', 'series', 'name', 'number', 'date',
+        fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
                   'page_count', 'status', 'desc', 'characters', 'teams', 'arcs', 'image')
         lookup_field = 'slug'
 
