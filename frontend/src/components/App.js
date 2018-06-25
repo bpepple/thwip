@@ -1,13 +1,10 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import DataProvider from "./DataProvider";
-import SeriesListCard from "./SeriesListCard";
+import Main from "./Main";
 
 const App = () => (
-  <DataProvider endpoint="api/series/"
-                render={data => <SeriesListCard data={data} />} />
+  <div>
+    <Main />
+  </div>
 );
 
-const wrapper = document.getElementById("app");
-
-wrapper ? ReactDOM.render(<App />, wrapper) : null;
+export default App
