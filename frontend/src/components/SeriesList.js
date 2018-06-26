@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
 import shortid from "shortid";
 
@@ -42,7 +43,7 @@ class SeriesList extends React.Component {
                  <p className="card-footer-item">
                    <span key={uuid()}>{el.issue_count} Books</span>
                  </p>
-                 <a href="#" className="card-footer-item" key={uuid()}>Open Series</a>
+                 <Link to={`/series/${el.slug}`} className="card-footer-item" key={uuid()}>Open Series</Link>
                </footer>
              </div>
            </div>

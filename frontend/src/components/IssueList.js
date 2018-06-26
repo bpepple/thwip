@@ -14,7 +14,9 @@ class IssueList extends React.Component {
   }
 
   componentDidMount() {
-    fetch('api/issue/')
+    const { match: {params} } = this.props;
+
+    fetch(`api/series/${params.id}/issue_list/`)
       .then(response => response.json())
       .then((data) => { this.setState({ data });
      });
