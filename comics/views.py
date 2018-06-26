@@ -87,6 +87,13 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
     permission_classes = (permissions.IsAuthenticated,)
 
+    @detail_route()
+    def series_list(self, request, slug=None):
+        publisher = self.get_object()
+        series = Series.objects.filter(publisher__slug=publisher.slug)
+        series_json = SeriesSerializer(series, many=True)
+        return Response(series_json.data)
+
 
 class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     """

@@ -32,8 +32,8 @@ class SeriesImageSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SeriesSerializer(serializers.HyperlinkedModelSerializer):
-    publisher = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='api:publisher-detail', lookup_field='slug')
+    publisher = serializers.SlugRelatedField(many=False, read_only=True,
+                                             slug_field='slug')
     issue_count = serializers.ReadOnlyField
     image = SeriesImageSerializer(source='issue_set.first', many=False)
 
