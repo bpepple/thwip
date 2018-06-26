@@ -1,11 +1,14 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+
+from comics.models import (Arc, Character, Creator,
+                           Issue, Publisher, Series,
+                           Team)
 from comics.serializers import (ArcSerializer, CharacterSerializer,
                                 CreatorSerializer, IssueSerializer,
                                 PublisherSerializer, SeriesSerializer,
                                 TeamSerializer)
-from comics.models import (Arc, Character, Creator,
-                           Issue, Publisher, Series,
-                           Team)
 
 
 class ArcViewSet(viewsets.ReadOnlyModelViewSet):
@@ -100,6 +103,13 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SeriesSerializer
     lookup_field = 'slug'
     permission_classes = (permissions.IsAuthenticated,)
+
+    @detail_route()
+    def issue_list(self, request, slug=None):
+        series = self.get_object()
+        issues = Issue.objects.filter(series__slug=series.slug)
+        issues_json = IssueSerializer(issues, many=True)
+        return Response(issues_json.data)
 
 
 class TeamViewSet(viewsets.ReadOnlyModelViewSet):

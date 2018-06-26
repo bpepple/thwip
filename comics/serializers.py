@@ -5,19 +5,13 @@ from comics.models import (Arc, Character, Creator,
 
 
 class IssueSerializer(serializers.HyperlinkedModelSerializer):
-    arcs = serializers.HyperlinkedRelatedField(
-        many=True, read_only=True, view_name='api:arc-detail', lookup_field='slug')
-    characters = serializers.HyperlinkedRelatedField(
-        many=True, read_only=True, view_name='api:character-detail', lookup_field='slug')
-    series = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='api:series-detail', lookup_field='slug')
-    teams = serializers.HyperlinkedRelatedField(
-        many=True, read_only=True, view_name='api:team-detail', lookup_field='slug')
+    series = serializers.SlugRelatedField(many=False, read_only=True,
+                                          slug_field='slug')
 
     class Meta:
         model = Issue
         fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
-                  'page_count', 'status', 'desc', 'characters', 'teams', 'arcs', 'image')
+                  'page_count', 'status', 'desc', 'image')
         lookup_field = 'slug'
 
 
