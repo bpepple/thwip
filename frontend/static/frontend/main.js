@@ -94,7 +94,19 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _Header = __webpack_require__(/*! ./Header */ \"./frontend/src/components/Header.js\");\n\nvar _Header2 = _interopRequireDefault(_Header);\n\nvar _Main = __webpack_require__(/*! ./Main */ \"./frontend/src/components/Main.js\");\n\nvar _Main2 = _interopRequireDefault(_Main);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar App = function App() {\n  return _react2.default.createElement(\n    \"div\",\n    null,\n    _react2.default.createElement(_Header2.default, null),\n    _react2.default.createElement(_Main2.default, null)\n  );\n};\n\nexports.default = App;\n\n//# sourceURL=webpack:///./frontend/src/components/App.js?");
+eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _Header = __webpack_require__(/*! ./Header */ \"./frontend/src/components/Header.js\");\n\nvar _Header2 = _interopRequireDefault(_Header);\n\nvar _Main = __webpack_require__(/*! ./Main */ \"./frontend/src/components/Main.js\");\n\nvar _Main2 = _interopRequireDefault(_Main);\n\nvar _Footer = __webpack_require__(/*! ./Footer */ \"./frontend/src/components/Footer.js\");\n\nvar _Footer2 = _interopRequireDefault(_Footer);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar App = function App() {\n  return _react2.default.createElement(\n    \"div\",\n    null,\n    _react2.default.createElement(_Header2.default, null),\n    _react2.default.createElement(_Main2.default, null),\n    _react2.default.createElement(_Footer2.default, null)\n  );\n};\n\nexports.default = App;\n\n//# sourceURL=webpack:///./frontend/src/components/App.js?");
+
+/***/ }),
+
+/***/ "./frontend/src/components/Footer.js":
+/*!*******************************************!*\
+  !*** ./frontend/src/components/Footer.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n\nvar _react2 = _interopRequireDefault(_react);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar Footer = function Footer() {\n  return _react2.default.createElement(\n    \"footer\",\n    { className: \"footer\" },\n    _react2.default.createElement(\n      \"div\",\n      { className: \"content has-text-right\" },\n      _react2.default.createElement(\n        \"p\",\n        null,\n        \"Metadata provided by:\",\n        _react2.default.createElement(\n          \"a\",\n          { href: \"https://comicvine.gamespot.com/\", target: \"_blank\" },\n          _react2.default.createElement(\"img\", { src: \"/static/site/img/comicvine_logo.png\", alt: \"Comic Vine\" })\n        )\n      )\n    )\n  );\n};\n\nexports.default = Footer;\n\n//# sourceURL=webpack:///./frontend/src/components/Footer.js?");
 
 /***/ }),
 
