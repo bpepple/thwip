@@ -1,10 +1,11 @@
 import React, { Component } from "react";
+import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
 import shortid from "shortid";
 
 const uuid = shortid.generate;
 
-class IssueList extends React.Component {
+class PublisherList extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -14,9 +15,7 @@ class IssueList extends React.Component {
   }
 
   componentDidMount() {
-    const { match: {params} } = this.props;
-
-    fetch(`api/series/${params.id}/issue_list/`)
+    fetch('api/publisher/')
       .then(response => response.json())
       .then((data) => { this.setState({ data });
      });
@@ -33,21 +32,18 @@ class IssueList extends React.Component {
            <div className="column is-one-fifth" key={uuid()}>
              <div className="card" key={uuid()}>
                <div className="card-header">
-                 <p className="card-header-title is-centered" key={uuid()}>{el.__str__}</p>
+                 <p className="card-header-title is-centered" key={uuid()}>{el.name}</p>
                </div>
                <div className="card-image">
                  <figure className="image is-2by3">
                    <img src={el.image} alt="Placeholder image" key={uuid()}></img>
                  </figure>
                </div>
-               <div className="card-content">
-                 <progress className="progress is-small" value={el.read_percentage} max="100">{el.read_percentage}%</progress>
-               </div>
                <footer className="card-footer">
                  <p className="card-footer-item">
-                   <span key={uuid()}>{el.page_count} Pages</span>
+                   <span key={uuid()}>{el.issue_count} Books</span>
                  </p>
-                 <a href="#" className="card-footer-item" key={uuid()}>Read</a>
+                 <Link to={`/publisher/${el.slug}`} className="card-footer-item" key={uuid()}>Open Publisher</Link>
                </footer>
              </div>
            </div>
@@ -57,4 +53,4 @@ class IssueList extends React.Component {
    }
  }
 
-export default IssueList;
+export default PublisherList;
