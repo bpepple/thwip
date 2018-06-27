@@ -204,6 +204,19 @@ class Issue(models.Model):
     import_date = models.DateTimeField('Date Imported',
                                        auto_now_add=True)
 
+    @property
+    def read_percentage(self):
+        # If status is marked as read return 100%
+        if (self.status == 2):
+            return 100
+        if (self.leaf == 1):
+            # Since we set the default value for leaf at 1,
+            # let's assume the user hasn't read it at all.
+            read = 0
+        else:
+            read = self.leaf
+        return ((read / self.page_count) * 100)
+
     def get_absolute_url(self):
         return reverse('issue:detail', args=[self.slug])
 
