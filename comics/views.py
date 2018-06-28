@@ -13,10 +13,10 @@ from comics.serializers import (ArcSerializer, CharacterSerializer,
 
 class ArcViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
-    Returns a list of all the story arcs in the database.
+    get:
+    Returns a list of all the story arcs.
 
-    read:
+    retrieve:
     Returns the information of an individual story arc.
     """
     queryset = Arc.objects.all()
@@ -27,10 +27,10 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CharacterViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
-    Returns a list of all the characters in the database.
+    get:
+    Returns a list of all the characters.
 
-    read:
+    retrieve:
     Returns the information for an individual character.
     """
     queryset = (
@@ -44,10 +44,10 @@ class CharacterViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
-    Returns a list of all creators in the database.
+    get:
+    Returns a list of all creators.
 
-    read:
+    retrieve:
     Returns the information of an individual creator.
     """
     queryset = Creator.objects.all()
@@ -58,10 +58,10 @@ class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IssueViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
-    Returns a list of all issues in the database.
+    get:
+    Returns a list of all issues.
 
-    read:
+    retrieve:
     Returns the information of an individual issue.
     """
     queryset = (
@@ -76,10 +76,10 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
+    get:
     Returns a list of all publishers.
 
-    read:
+    retrieve:
     Returns the information of an individual publisher.
     """
     queryset = Publisher.objects.all()
@@ -89,6 +89,9 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
 
     @detail_route()
     def series_list(self, request, slug=None):
+        """
+        Returns a list of series for a publisher.
+        """
         publisher = self.get_object()
         series = Series.objects.filter(publisher__slug=publisher.slug)
         series_json = SeriesSerializer(series, many=True)
@@ -97,10 +100,10 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
+    get:
     Returns a list of all the comic series.
 
-    read:
+    retrieve:
     Returns the information of an individual comic series.
     """
     queryset = (
@@ -113,6 +116,9 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @detail_route()
     def issue_list(self, request, slug=None):
+        """
+        Returns a list of issues for a series.
+        """
         series = self.get_object()
         issues = Issue.objects.filter(series__slug=series.slug)
         issues_json = IssueSerializer(issues, many=True)
@@ -121,10 +127,10 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TeamViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    list:
-    Returns a list of all the teams in the database.
+    get:
+    Returns a list of all the teams.
 
-    read:
+    retrieve:
     Returns the information for an individual team.
     """
     queryset = Team.objects.all()
