@@ -17,10 +17,11 @@ class IssueSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PublisherSerializer(serializers.HyperlinkedModelSerializer):
+    serie_count = serializers.ReadOnlyField
 
     class Meta:
         model = Publisher
-        fields = ('slug', 'cvurl', 'name', 'desc', 'image')
+        fields = ('slug', 'cvurl', 'name', 'desc', 'image', 'series_count')
         lookup_field = 'slug'
 
 

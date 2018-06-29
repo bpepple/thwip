@@ -41,9 +41,9 @@ class PublisherList extends React.Component {
                </div>
                <footer className="card-footer">
                  <p className="card-footer-item">
-                   <span key={uuid()}>{el.issue_count} Books</span>
+                   <span key={uuid()}>{el.series_count} Series</span>
                  </p>
-                 <Link to={`/publisher/${el.slug}`} className="card-footer-item" key={uuid()}>Open Publisher</Link>
+                 <Link to={`/publisher/${el.slug}`} className="card-footer-item" key={uuid()}>Open</Link>
                </footer>
              </div>
            </div>
