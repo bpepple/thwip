@@ -45,6 +45,15 @@ class SeriesSerializer(serializers.HyperlinkedModelSerializer):
                   'year', 'desc', 'issue_count', 'image')
         lookup_field = 'slug'
 
+    def to_representation(self, obj):
+        """ Move image field from Issue to Series representation. """
+        representation = super().to_representation(obj)
+        issue_representation = representation.pop('image')
+        for key in issue_representation:
+            representation[key] = issue_representation[key]
+
+        return representation
+
 
 class CreatorSerializer(serializers.HyperlinkedModelSerializer):
 
