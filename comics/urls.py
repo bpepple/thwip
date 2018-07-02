@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 from rest_framework import routers
+from rest_framework.authtoken import views as drf_views
 
 from comics.views import (ArcViewSet, CharacterViewSet,
                           CreatorViewSet, IssueViewSet,
@@ -21,6 +22,7 @@ router.register('team', TeamViewSet)
 app_name = 'api'
 urlpatterns = [
     path('api/', include(router.urls)),
+    path('api-token-auth/', drf_views.obtain_auth_token),
 ]
 
 if settings.DEBUG:
