@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'solo.apps.SoloAppConfig',
     'comics',
     'rest_framework',
-    'frontend',
 ]
 
 MIDDLEWARE = [
