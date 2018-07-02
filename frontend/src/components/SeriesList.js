@@ -36,7 +36,7 @@ class SeriesList extends React.Component {
                </div>
                <div className="card-image">
                  <figure className="image is-2by3">
-                   <img src={el.image.image} alt="Placeholder image" key={uuid()}></img>
+                   <img src={el.image} alt="Placeholder image" key={uuid()}></img>
                  </figure>
                </div>
                <footer className="card-footer">
