@@ -26,6 +26,8 @@ class PublisherSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SeriesImageSerializer(serializers.HyperlinkedModelSerializer):
+    image = serializers.ImageField(
+        max_length=None, use_url=True, allow_null=True, required=False)
 
     class Meta:
         model = Issue

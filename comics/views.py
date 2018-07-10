@@ -89,7 +89,8 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         publisher = self.get_object()
         series = Series.objects.filter(publisher__slug=publisher.slug)
-        series_json = SeriesSerializer(series, many=True)
+        series_json = SeriesSerializer(
+            series, many=True, context={"request": request})
         return Response(series_json.data)
 
 
@@ -115,7 +116,8 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         """
         series = self.get_object()
         issues = Issue.objects.filter(series__slug=series.slug)
-        issues_json = IssueSerializer(issues, many=True)
+        issues_json = IssueSerializer(
+            issues, many=True, context={"request": request})
         return Response(issues_json.data)
 
 
