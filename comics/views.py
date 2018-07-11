@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
@@ -22,7 +22,6 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Arc.objects.all()
     serializer_class = ArcSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
 
 class CharacterViewSet(viewsets.ReadOnlyModelViewSet):
@@ -39,7 +38,6 @@ class CharacterViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = CharacterSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
 
 class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
@@ -53,7 +51,6 @@ class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Creator.objects.all()
     serializer_class = CreatorSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
 
 class IssueViewSet(viewsets.ReadOnlyModelViewSet):
@@ -71,7 +68,6 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = IssueSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
@@ -85,7 +81,6 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Publisher.objects.all()
     serializer_class = PublisherSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
     @detail_route()
     def series_list(self, request, slug=None):
@@ -94,7 +89,8 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         publisher = self.get_object()
         series = Series.objects.filter(publisher__slug=publisher.slug)
-        series_json = SeriesSerializer(series, many=True)
+        series_json = SeriesSerializer(
+            series, many=True, context={"request": request})
         return Response(series_json.data)
 
 
@@ -112,7 +108,6 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = SeriesSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)
 
     @detail_route()
     def issue_list(self, request, slug=None):
@@ -121,7 +116,8 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         """
         series = self.get_object()
         issues = Issue.objects.filter(series__slug=series.slug)
-        issues_json = IssueSerializer(issues, many=True)
+        issues_json = IssueSerializer(
+            issues, many=True, context={"request": request})
         return Response(issues_json.data)
 
 
@@ -136,4 +132,3 @@ class TeamViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
     lookup_field = 'slug'
-    permission_classes = (permissions.IsAuthenticated,)

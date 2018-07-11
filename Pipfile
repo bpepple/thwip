@@ -15,6 +15,7 @@ requests-cache = "*"
 natsort = "*"
 "pypdf2" = "*"
 redis = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 coverage = "*"
