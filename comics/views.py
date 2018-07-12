@@ -67,7 +67,6 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = (
         Issue.objects
         .select_related('series')
-        .prefetch_related('arcs', 'characters', 'teams')
     )
     serializer_class = IssueSerializer
     lookup_field = 'slug'
@@ -88,7 +87,10 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     retrieve:
     Returns the information of an individual publisher.
     """
-    queryset = Publisher.objects.all()
+    queryset = (
+        Publisher.objects
+        .prefetch_related('series_set')
+    )
     serializer_class = PublisherSerializer
     lookup_field = 'slug'
 
@@ -98,7 +100,8 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         Returns a list of series for a publisher.
         """
         publisher = self.get_object()
-        series = Series.objects.filter(publisher__slug=publisher.slug)
+        series = Series.objects.filter(publisher__slug=publisher.slug).select_related(
+            'publisher').prefetch_related('issue_set')
         series_json = SeriesSerializer(
             series, many=True, context={"request": request})
         return Response(series_json.data)
@@ -115,6 +118,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = (
         Series.objects
         .select_related('publisher')
+        .prefetch_related('issue_set')
     )
     serializer_class = SeriesSerializer
     lookup_field = 'slug'
@@ -125,7 +129,8 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         Returns a list of issues for a series.
         """
         series = self.get_object()
-        issues = Issue.objects.filter(series__slug=series.slug)
+        issues = Issue.objects.filter(
+            series__slug=series.slug).select_related('series')
         issues_json = IssueSerializer(
             issues, many=True, context={"request": request})
         return Response(issues_json.data)
