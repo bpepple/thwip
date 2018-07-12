@@ -2,6 +2,22 @@ from rest_framework import serializers
 
 from comics.models import (Arc, Character, Creator,
                            Issue, Publisher, Series, Team)
+from comics.utils.reader import ImageAPIHandler
+
+
+class ComicPageSerializer(serializers.ModelSerializer):
+    page = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Issue
+        fields = ('page',)
+        lookup_field = 'slug'
+
+    def get_page(self, obj):
+        page_number = self.context.get("page_number")
+        i = ImageAPIHandler()
+        data_uri = i.get_uri(obj.file, page_number)
+        return data_uri
 
 
 class IssueSerializer(serializers.HyperlinkedModelSerializer):

@@ -8,7 +8,7 @@ from comics.models import (Arc, Character, Creator,
 from comics.serializers import (ArcSerializer, CharacterSerializer,
                                 CreatorSerializer, IssueSerializer,
                                 PublisherSerializer, SeriesSerializer,
-                                TeamSerializer)
+                                ComicPageSerializer, TeamSerializer)
 
 
 class ArcViewSet(viewsets.ReadOnlyModelViewSet):
@@ -60,6 +60,9 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
 
     retrieve:
     Returns the information of an individual issue.
+
+    get-page:
+    Returns the base 64 image of the page from an issue.
     """
     queryset = (
         Issue.objects
@@ -68,6 +71,13 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = IssueSerializer
     lookup_field = 'slug'
+
+    @detail_route(url_path='get-page/(?P<page>[0-9]+)')
+    def get_page(self, request, slug=None, page=None):
+        issue = self.get_object()
+        page_json = ComicPageSerializer(issue, many=False, context={
+                                        'page_number': self.kwargs['page']})
+        return Response(page_json.data)
 
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
