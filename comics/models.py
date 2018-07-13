@@ -215,7 +215,7 @@ class Issue(models.Model):
             read = 0
         else:
             read = self.leaf
-        return ((read / self.page_count) * 100)
+        return round((read / self.page_count) * 100)
 
     def get_absolute_url(self):
         return reverse('issue:detail', args=[self.slug])
