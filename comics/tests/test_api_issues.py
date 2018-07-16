@@ -56,3 +56,8 @@ class GetSingleIssueTest(TestCase):
         serializer = IssueSerializer(issue, context=self.serializer_context)
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_invalid_single_issue(self):
+        response = self.client.get(
+            reverse('api:issue-detail', kwargs={'slug': 'airboy-001'}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
