@@ -56,7 +56,7 @@ class ComicImporter(object):
     def __init__(self):
         # Configure logging
         logging.getLogger("requests").setLevel(logging.WARNING)
-        self.logger = logging.getLogger('bamf')
+        self.logger = logging.getLogger('thwip')
         # Setup requests caching
         expire_after = timedelta(hours=1)
         requests_cache.install_cache('cv-cache',
@@ -71,7 +71,7 @@ class ComicImporter(object):
         self.imageurl = 'https://comicvine.gamespot.com/api/image/'
         self.base_params = {'format': 'json',
                             'api_key': self.api_key}
-        self.headers = {'user-agent': 'bamf'}
+        self.headers = {'user-agent': 'thwip'}
         # API field strings
         self.arc_fields = 'deck,description,id,image,name,site_detail_url'
         self.character_fields = 'deck,description,id,image,name,site_detail_url'
