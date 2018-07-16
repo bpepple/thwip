@@ -1,59 +1,46 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
-from comics.models import Series, Publisher
+from comics.models import Series, Publisher, Issue
 from comics.serializers import SeriesSerializer
 
 
-class TestCaseBase(TestCase):
-
-    def _create_user(self):
-        user = User.objects.create(username='brian')
-        user.set_password('1234')
-        user.save()
-
-        return user
-
-    def _client_login(self):
-        self.client.login(username='brian', password='1234')
+issue_date = timezone.now().date()
+mod_time = timezone.now()
 
 
-class GetAllSeriesTest(TestCaseBase):
+class GetAllSeriesTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls._create_user(cls)
-
         publisher_obj = Publisher.objects.create(
             name='DC Comics', slug='dc-comics')
-        Series.objects.create(cvid='1234', cvurl='http://1.com',
-                              name='Superman', slug='superman', publisher=publisher_obj)
-        Series.objects.create(cvid='4321', cvurl='http://2.com',
-                              name='Batman', slug='batman', publisher=publisher_obj)
-
-    def setUp(self):
-        self._client_login()
+        super_obj = Series.objects.create(cvid='1234', cvurl='http://1.com',
+                                          name='Superman', slug='superman',
+                                          publisher=publisher_obj)
+        batman_obj = Series.objects.create(cvid='4321', cvurl='http://2.com',
+                                           name='Batman', slug='batman', publisher=publisher_obj)
+        # Need to create the issues so the series image serializer doesn't kick up an error.
+        Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1',
+                             file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1',
+                             series=super_obj, image="image/issues/super.jpg")
+        Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='batman-1',
+                             file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1',
+                             series=batman_obj, image="image/issues/bat.jpg")
 
     def test_view_url_accessible_by_name(self):
         resp = self.client.get(reverse('api:series-list'))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_unauthorized_view_url(self):
-        self.client.logout()
-        resp = self.client.get(reverse('api:series-list'))
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
-
-class GetSingleSeriesTest(TestCaseBase):
+class GetSingleSeriesTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls._create_user(cls)
-
         factory = APIRequestFactory()
         request = factory.get('/')
 
@@ -65,11 +52,11 @@ class GetSingleSeriesTest(TestCaseBase):
         cls.thor = Series.objects.create(cvid='1234', cvurl='https://comicvine.com',
                                          name='The Mighty Thor', slug='the-mighty-thor',
                                          publisher=publisher_obj)
+        Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='thor-1',
+                             file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1',
+                             series=cls.thor, image="image/issues/bat.jpg")
 
-    def setUp(self):
-        self._client_login()
-
-    def test_get_valid_single_issue(self):
+    def test_get_valid_single_series(self):
         resp = self.client.get(
             reverse('api:series-detail', kwargs={'slug': self.thor.slug}))
         series = Series.objects.get(slug=self.thor.slug)
@@ -77,8 +64,7 @@ class GetSingleSeriesTest(TestCaseBase):
         self.assertEqual(resp.data, serializer.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_unauthorized_view_url(self):
-        self.client.logout()
+    def test_get_invalid_single_series(self):
         response = self.client.get(
-            reverse('api:series-detail', kwargs={'slug': self.thor.slug}))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+            reverse('api:series-detail', kwargs={'slug': 'airboy'}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
