@@ -36,7 +36,6 @@ class IssueSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PublisherSerializer(serializers.HyperlinkedModelSerializer):
-    serie_count = serializers.ReadOnlyField
 
     class Meta:
         model = Publisher
