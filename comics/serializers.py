@@ -24,11 +24,14 @@ class IssueSerializer(serializers.HyperlinkedModelSerializer):
     series = serializers.SlugRelatedField(many=False, read_only=True,
                                           slug_field='slug')
     read_percentage = serializers.ReadOnlyField
+    leaf = serializers.IntegerField()
 
     class Meta:
         model = Issue
         fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
                   'leaf', 'page_count', 'read_percentage', 'status', 'desc', 'image')
+        read_only_fields = ('__str__', 'slug', 'cvurl', 'name', 'number', 'date',
+                            'page_count', 'read_percentage', 'desc', 'image')
         lookup_field = 'slug'
 
 

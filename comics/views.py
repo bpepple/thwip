@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
+from rest_framework import mixins
+
 from comics.models import (Arc, Character, Creator,
                            Issue, Publisher, Series,
                            Team)
@@ -53,7 +55,10 @@ class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
 
 
-class IssueViewSet(viewsets.ReadOnlyModelViewSet):
+class IssueViewSet(mixins.UpdateModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.RetrieveModelMixin,
+                   viewsets.GenericViewSet):
     """
     get:
     Returns a list of all issues.
