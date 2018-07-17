@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from django.conf import settings
 
-NORMAL_WIDTH = 320
-NORMAL_HEIGHT = 480
+NORMAL_WIDTH = 640
+NORMAL_HEIGHT = 960
 
 
 def resize_images(path, folder):
