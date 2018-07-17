@@ -1,9 +1,8 @@
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.request import Request
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from comics.models import Issue, Publisher, Series
 from comics.serializers import IssueSerializer
@@ -13,7 +12,7 @@ issue_date = timezone.now().date()
 mod_time = timezone.now()
 
 
-class GetAllIssueTest(TestCase):
+class GetAllIssueTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -31,7 +30,7 @@ class GetAllIssueTest(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
-class GetSingleIssueTest(TestCase):
+class GetSingleIssueTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -56,6 +55,14 @@ class GetSingleIssueTest(TestCase):
         serializer = IssueSerializer(issue, context=self.serializer_context)
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_issue_update_leaf(self):
+        change_leaf = {'leaf': '10'}
+        response = self.client.put(reverse('api:issue-detail', kwargs={'slug': self.superman.slug}),
+                                   change_leaf, format='json')
+        issue = Issue.objects.get(slug=self.superman.slug)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(10, issue.leaf)
 
     def test_get_invalid_single_issue(self):
         response = self.client.get(
