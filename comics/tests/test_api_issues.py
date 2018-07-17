@@ -56,13 +56,15 @@ class GetSingleIssueTest(APITestCase):
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_issue_update_leaf(self):
-        change_leaf = {'leaf': '10'}
+    def test_issue_update_values(self):
+        # Let's change the leaf to 10, and change the read status to Read (2).
+        change_values = {'leaf': 10, 'status': 2}
         response = self.client.put(reverse('api:issue-detail', kwargs={'slug': self.superman.slug}),
-                                   change_leaf, format='json')
+                                   change_values, format='json')
         issue = Issue.objects.get(slug=self.superman.slug)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(10, issue.leaf)
+        self.assertEqual(2, issue.status)
 
     def test_get_invalid_single_issue(self):
         response = self.client.get(
