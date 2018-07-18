@@ -5,7 +5,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from comics.models import Issue, Publisher, Series
-from comics.serializers import IssueSerializer
+from comics.serializers import IssueSerializer, ReaderSerializer
 
 
 issue_date = timezone.now().date()
@@ -20,7 +20,7 @@ class GetAllIssueTest(APITestCase):
             name='DC Comics', slug='dc-comics')
         series_obj = Series.objects.create(
             cvid='1234', cvurl='http://1.com', name='Superman', slug='superman', publisher=publisher_obj)
-        Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1',
+        Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1', page_count='21',
                              file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=series_obj)
         Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='batman-1',
                              file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=series_obj)
@@ -53,6 +53,14 @@ class GetSingleIssueTest(APITestCase):
             reverse('api:issue-detail', kwargs={'slug': self.superman.slug}))
         issue = Issue.objects.get(slug=self.superman.slug)
         serializer = IssueSerializer(issue, context=self.serializer_context)
+        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_issue_reader(self):
+        response = self.client.get(
+            reverse('api:issue-reader', kwargs={'slug': self.superman.slug}))
+        issue = Issue.objects.get(slug=self.superman.slug)
+        serializer = ReaderSerializer(issue, context=self.serializer_context)
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

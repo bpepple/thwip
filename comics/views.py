@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from comics.models import (Arc, Character, Creator,
                            Issue, Publisher, Series,
                            Team)
-from comics.serializers import (ArcSerializer, CharacterSerializer,
-                                CreatorSerializer, IssueSerializer,
-                                PublisherSerializer, SeriesSerializer,
-                                ComicPageSerializer, TeamSerializer)
+from comics.serializers import (ArcSerializer, ComicPageSerializer,
+                                CharacterSerializer, CreatorSerializer,
+                                IssueSerializer, PublisherSerializer,
+                                ReaderSerializer, SeriesSerializer,
+                                TeamSerializer)
 
 
 class ArcViewSet(viewsets.ReadOnlyModelViewSet):
@@ -65,6 +66,9 @@ class IssueViewSet(mixins.UpdateModelMixin,
     retrieve:
     Returns the information of an individual issue.
 
+    put:
+    Update the leaf and status for an issues.
+
     get-page:
     Returns the base 64 image of the page from an issue.
     """
@@ -80,6 +84,13 @@ class IssueViewSet(mixins.UpdateModelMixin,
         issue = self.get_object()
         page_json = ComicPageSerializer(issue, many=False, context={
                                         'page_number': self.kwargs['page']})
+        return Response(page_json.data)
+
+    @detail_route()
+    def reader(self, request, slug=None):
+        issue = self.get_object()
+        page_json = ReaderSerializer(
+            issue, many=False, context={"request": request})
         return Response(page_json.data)
 
 

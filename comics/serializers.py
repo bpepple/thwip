@@ -43,6 +43,13 @@ class PublisherSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'slug'
 
 
+class ReaderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Issue
+        fields = ('leaf', 'page_count', 'status')
+
+
 class SeriesImageSerializer(serializers.HyperlinkedModelSerializer):
     image = serializers.ImageField(
         max_length=None, use_url=True, allow_null=True, required=False)
