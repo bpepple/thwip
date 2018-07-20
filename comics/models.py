@@ -197,7 +197,7 @@ class Issue(models.Model):
     status = models.PositiveSmallIntegerField(
         'Status', choices=STATUS_CHOICES, default=0, blank=True)
     leaf = models.PositiveSmallIntegerField(
-        editable=False, default=1, blank=True)
+        editable=False, default=0, blank=True)
     page_count = models.PositiveSmallIntegerField(
         editable=False, default=1, blank=True)
     mod_ts = models.DateTimeField()
@@ -209,10 +209,10 @@ class Issue(models.Model):
         # If status is marked as read return 100%
         if (self.status == 2):
             return 100
-        if (self.leaf == 1):
-            # Since we set the default value for leaf at 1,
-            # let's assume the user hasn't read it at all.
-            read = 0
+        if (self.leaf > 0):
+            # We need to increase the leaf by one to calculate
+            # the correct percent (due to index starting with 0)
+            read = self.leaf + 1
         else:
             read = self.leaf
         return round((read / self.page_count) * 100)
