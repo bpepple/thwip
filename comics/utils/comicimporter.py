@@ -589,32 +589,34 @@ class ComicImporter(object):
                     name=md.publisher,
                     slug=slugify(md.publisher),)
 
-            # Get the series info from CV.
-            series_url = issue_response['results']['volume']['api_detail_url']
-            data = self.getSeries(series_url)
-            if data is not None:
-                # Alright let's create the series object.
+            # Check the series cvid to see if we've already added
+            # the series. If not, call the detail api for it.
+            series_cvid = issue_response['results']['volume']['id']
+            if series_cvid is not None:
                 series_obj, s_create = Series.objects.get_or_create(
-                    cvid=int(data['cvid']),)
-
+                    cvid=int(series_cvid),)
                 if s_create:
-                    # Create the slug & make sure it's not a duplicate
-                    new_slug = orig = slugify(data['name'])
-                    for x in itertools.count(1):
-                        if not Series.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = '%s-%d' % (orig, x)
+                    series_url = issue_response['results'][
+                        'volume']['api_detail_url']
+                    data = self.getSeries(series_url)
+                    if data is not None:
+                        # Create the slug & make sure it's not a duplicate
+                        new_slug = orig = slugify(data['name'])
+                        for x in itertools.count(1):
+                            if not Series.objects.filter(slug=new_slug).exists():
+                                break
+                            new_slug = '%s-%d' % (orig, x)
 
-                    sort_name = utils.create_series_sortname(data['name'])
-                    series_obj.slug = new_slug
-                    series_obj.cvurl = data['cvurl']
-                    series_obj.name = data['name']
-                    series_obj.sort_title = sort_name
-                    series_obj.publisher = publisher_obj
-                    series_obj.year = data['year']
-                    series_obj.desc = data['desc']
-                    series_obj.save()
-                    self.logger.info('Added series: %s' % series_obj)
+                        sort_name = utils.create_series_sortname(data['name'])
+                        series_obj.slug = new_slug
+                        series_obj.cvurl = data['cvurl']
+                        series_obj.name = data['name']
+                        series_obj.sort_title = sort_name
+                        series_obj.publisher = publisher_obj
+                        series_obj.year = data['year']
+                        series_obj.desc = data['desc']
+                        series_obj.save()
+                        self.logger.info('Added series: %s' % series_obj)
 
             # Ugh, deal wih the timezone
             current_timezone = timezone.get_current_timezone()
