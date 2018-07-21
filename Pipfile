@@ -16,6 +16,7 @@ natsort = "*"
 "pypdf2" = "*"
 redis = "*"
 django-cors-headers = "*"
+celery = "*"
 
 [dev-packages]
 coverage = "*"
