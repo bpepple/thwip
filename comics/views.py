@@ -1,6 +1,6 @@
 from rest_framework import mixins
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from comics.models import (Arc, Character, Creator,
@@ -11,6 +11,7 @@ from comics.serializers import (ArcSerializer, ComicPageSerializer,
                                 IssueSerializer, PublisherSerializer,
                                 ReaderSerializer, SeriesSerializer,
                                 TeamSerializer)
+from comics.tasks import import_comic_files_task
 
 
 class ArcViewSet(viewsets.ReadOnlyModelViewSet):
@@ -92,6 +93,11 @@ class IssueViewSet(mixins.UpdateModelMixin,
         page_json = ReaderSerializer(
             issue, many=False, context={"request": request})
         return Response(page_json.data)
+
+    @list_route()
+    def import_comics(self, request):
+        import_comic_files_task.apply_async()
+        return Response(data={"import_comics": "Started imports."})
 
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
