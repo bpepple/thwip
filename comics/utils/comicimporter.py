@@ -391,23 +391,9 @@ class ComicImporter(object):
 
         return response
 
-    def getIssueDetail(self, issue_cvid, response_issue):
-        issue_params = self.base_params
-        issue_params['field_list'] = self.issue_fields
+    def setIssueDetail(self, issue_cvid, issue_response):
 
-        api_url = response_issue['results']['api_detail_url']
-
-        try:
-            response = requests.get(
-                api_url,
-                params=issue_params,
-                headers=self.headers,
-            ).json()
-        except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
-            return False
-
-        data = self.getCVObjectData(response['results'])
+        data = self.getCVObjectData(issue_response['results'])
 
         issue = Issue.objects.get(cvid=issue_cvid)
         if data['image'] != None:
@@ -669,8 +655,8 @@ class ComicImporter(object):
                 self.logger.info('Skipping: %s' % md.path)
                 return
 
-            # Get the issue image & short description from CV.
-            res = self.getIssueDetail(cvID, issue_response)
+            # Set the issue image & short description.
+            res = self.setIssueDetail(cvID, issue_response)
             if res:
                 self.logger.info("Added: %s" % issue_obj)
             else:
