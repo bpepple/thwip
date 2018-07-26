@@ -76,8 +76,12 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         Returns a list of series for a publisher.
         """
         publisher = self.get_object()
-        series = Series.objects.filter(publisher__slug=publisher.slug).select_related(
-            'publisher').prefetch_related('issue_set')
+        series = (
+            Series.objects
+            .filter(publisher__slug=publisher.slug)
+            .select_related('publisher')
+            .prefetch_related('issue_set')
+        )
         series_json = SeriesSerializer(
             series, many=True, context={"request": request})
         return Response(series_json.data)
@@ -105,8 +109,11 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         Returns a list of issues for a series.
         """
         series = self.get_object()
-        issues = Issue.objects.filter(
-            series__slug=series.slug).select_related('series')
+        issues = (
+            Issue.objects
+            .filter(series__slug=series.slug)
+            .select_related('series')
+        )
         issues_json = IssueSerializer(
             issues, many=True, context={"request": request})
         return Response(issues_json.data)
