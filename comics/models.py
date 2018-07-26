@@ -191,6 +191,7 @@ class Issue(models.Model):
     arcs = models.ManyToManyField(Arc, blank=True)
     characters = models.ManyToManyField(Character, blank=True)
     teams = models.ManyToManyField(Team, blank=True)
+    creators = models.ManyToManyField(Creator, through='Credits', blank=True)
     file = models.CharField('File Path', max_length=300)
     image = models.ImageField(
         'Cover Image', upload_to='images/issues/', max_length=150, blank=True)
@@ -238,9 +239,6 @@ class Credits(models.Model):
     creator = models.ForeignKey(Creator, on_delete=models.CASCADE)
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     role = models.ManyToManyField(Role)
-
-    def __str__(self):
-        return self.issue.series.name + ' #' + str(self.issue.number) + ' - ' + self.creator.name
 
     class Meta:
         verbose_name_plural = "Credits"

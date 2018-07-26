@@ -76,6 +76,7 @@ class IssueViewSet(mixins.UpdateModelMixin,
     queryset = (
         Issue.objects
         .select_related('series')
+        .prefetch_related('credits_set')
     )
     serializer_class = IssueSerializer
     lookup_field = 'slug'

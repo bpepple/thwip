@@ -20,18 +20,20 @@ class ComicPageSerializer(serializers.ModelSerializer):
         return data_uri
 
 
-class IssueSerializer(serializers.HyperlinkedModelSerializer):
+class IssueSerializer(serializers.ModelSerializer):
     series = serializers.SlugRelatedField(many=False, read_only=True,
                                           slug_field='slug')
+    creators = serializers.StringRelatedField(many=True, read_only=True)
     read_percentage = serializers.ReadOnlyField
     leaf = serializers.IntegerField()
 
     class Meta:
         model = Issue
         fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
-                  'leaf', 'page_count', 'read_percentage', 'status', 'desc', 'image')
+                  'leaf', 'page_count', 'read_percentage', 'status', 'desc', 'image',
+                  'creators')
         read_only_fields = ('__str__', 'slug', 'cvurl', 'name', 'number', 'date',
-                            'page_count', 'read_percentage', 'desc', 'image')
+                            'page_count', 'desc', 'image')
         lookup_field = 'slug'
 
 
