@@ -3,57 +3,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
-from comics.models import (Arc, Character, Creator,
-                           Issue, Publisher, Series,
-                           Team)
-from comics.serializers import (ArcSerializer, ComicPageSerializer,
-                                CharacterSerializer, CreatorSerializer,
-                                IssueSerializer, PublisherSerializer,
-                                ReaderSerializer, SeriesSerializer,
-                                TeamSerializer)
+from comics.models import (Issue, Publisher, Series)
+from comics.serializers import (ComicPageSerializer, IssueSerializer,
+                                PublisherSerializer, ReaderSerializer,
+                                SeriesSerializer)
 from comics.tasks import import_comic_files_task
-
-
-class ArcViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    get:
-    Returns a list of all the story arcs.
-
-    retrieve:
-    Returns the information of an individual story arc.
-    """
-    queryset = Arc.objects.all()
-    serializer_class = ArcSerializer
-    lookup_field = 'slug'
-
-
-class CharacterViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    get:
-    Returns a list of all the characters.
-
-    retrieve:
-    Returns the information for an individual character.
-    """
-    queryset = (
-        Character.objects
-        .prefetch_related('teams')
-    )
-    serializer_class = CharacterSerializer
-    lookup_field = 'slug'
-
-
-class CreatorViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    get:
-    Returns a list of all creators.
-
-    retrieve:
-    Returns the information of an individual creator.
-    """
-    queryset = Creator.objects.all()
-    serializer_class = CreatorSerializer
-    lookup_field = 'slug'
 
 
 class IssueViewSet(mixins.UpdateModelMixin,
@@ -156,16 +110,3 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         issues_json = IssueSerializer(
             issues, many=True, context={"request": request})
         return Response(issues_json.data)
-
-
-class TeamViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    get:
-    Returns a list of all the teams.
-
-    retrieve:
-    Returns the information for an individual team.
-    """
-    queryset = Team.objects.all()
-    serializer_class = TeamSerializer
-    lookup_field = 'slug'

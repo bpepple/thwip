@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from comics.models import (Arc, Character, Creator,
-                           Issue, Publisher, Series, Team)
+from comics.models import (Issue, Publisher, Series)
 from comics.utils.reader import ImageAPIHandler
 
 
@@ -82,37 +81,3 @@ class SeriesSerializer(serializers.HyperlinkedModelSerializer):
             representation[key] = issue_representation[key]
 
         return representation
-
-
-class CreatorSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Creator
-        fields = ('slug', 'cvurl', 'name', 'desc', 'image')
-        lookup_field = 'slug'
-
-
-class CharacterSerializer(serializers.HyperlinkedModelSerializer):
-    teams = serializers.HyperlinkedRelatedField(
-        many=True, read_only=True, view_name='api:team-detail', lookup_field='slug')
-
-    class Meta:
-        model = Character
-        fields = ('slug', 'cvurl', 'name', 'teams', 'desc', 'image')
-        lookup_field = 'slug'
-
-
-class TeamSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Team
-        fields = ('slug', 'cvurl', 'name', 'desc', 'image')
-        lookup_field = 'slug'
-
-
-class ArcSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Arc
-        fields = ('slug', 'cvurl', 'name', 'desc', 'image')
-        lookup_field = 'slug'
