@@ -65,13 +65,13 @@ class SeriesSerializer(serializers.HyperlinkedModelSerializer):
     publisher = serializers.SlugRelatedField(many=False, read_only=True,
                                              slug_field='slug')
     issue_count = serializers.ReadOnlyField
-    unread_issue_count = serializers.ReadOnlyField
+    percent_read = serializers.ReadOnlyField
     image = SeriesImageSerializer(source='issue_set.first', many=False)
 
     class Meta:
         model = Series
         fields = ('slug', 'cvurl', 'name', 'sort_title', 'publisher',
-                  'year', 'desc', 'issue_count', 'unread_issue_count',
+                  'year', 'desc', 'issue_count', 'percent_read',
                   'image')
         lookup_field = 'slug'
 
