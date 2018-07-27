@@ -17,6 +17,7 @@ natsort = "*"
 redis = "*"
 django-cors-headers = "*"
 celery = "*"
+coreapi = "*"
 
 [dev-packages]
 coverage = "*"

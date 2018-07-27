@@ -15,17 +15,14 @@ class IssueViewSet(mixins.UpdateModelMixin,
                    mixins.RetrieveModelMixin,
                    viewsets.GenericViewSet):
     """
-    get:
+    list:
     Returns a list of all issues.
 
     retrieve:
     Returns the information of an individual issue.
 
-    put:
+    update:
     Update the leaf and status for an issues.
-
-    get-page:
-    Returns the base 64 image of the page from an issue.
     """
     queryset = (
         Issue.objects
@@ -37,6 +34,9 @@ class IssueViewSet(mixins.UpdateModelMixin,
 
     @detail_route(url_path='get-page/(?P<page>[0-9]+)')
     def get_page(self, request, slug=None, page=None):
+        """
+        Returns the base 64 image of the page from an issue.
+        """
         issue = self.get_object()
         page_json = ComicPageSerializer(issue, many=False, context={
                                         'page_number': self.kwargs['page']})
@@ -44,20 +44,26 @@ class IssueViewSet(mixins.UpdateModelMixin,
 
     @detail_route()
     def reader(self, request, slug=None):
+        """
+        Returns information from the issue needed for the Thwip reader.
+        """
         issue = self.get_object()
         page_json = ReaderSerializer(
             issue, many=False, context={"request": request})
         return Response(page_json.data)
 
-    @list_route()
+    @list_route(url_path='import-comics')
     def import_comics(self, request):
+        """
+        Updated the user's comic archive collection.
+        """
         import_comic_files_task.apply_async()
         return Response(data={"import_comics": "Started imports."})
 
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    get:
+    list:
     Returns a list of all publishers.
 
     retrieve:
@@ -89,7 +95,7 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    get:
+    list:
     Returns a list of all the comic series.
 
     retrieve:
