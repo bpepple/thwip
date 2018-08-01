@@ -172,7 +172,7 @@ class Series(models.Model):
     def read_issue_count(self):
         if hasattr(self, '_prefetched_objects_cache') and 'issue' in self._prefetched_objects_cache:
             return len([x for x in self.issue_set.all() if x.status is 2])
-        return self.issue_set.include(status=2).count()
+        return self.issue_set.filter(status=2).count()
 
     @property
     def percent_read(self):
