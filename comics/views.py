@@ -1,6 +1,6 @@
 from rest_framework import mixins
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from comics.models import (Issue, Publisher, Series)
@@ -32,7 +32,7 @@ class IssueViewSet(mixins.UpdateModelMixin,
     serializer_class = IssueSerializer
     lookup_field = 'slug'
 
-    @detail_route(url_path='get-page/(?P<page>[0-9]+)')
+    @action(detail=True, url_path='get-page/(?P<page>[0-9]+)')
     def get_page(self, request, slug=None, page=None):
         """
         Returns the base 64 image of the page from an issue.
@@ -42,7 +42,7 @@ class IssueViewSet(mixins.UpdateModelMixin,
                                         'page_number': self.kwargs['page']})
         return Response(page_json.data)
 
-    @detail_route()
+    @action(detail=True)
     def reader(self, request, slug=None):
         """
         Returns information from the issue needed for the Thwip reader.
@@ -52,7 +52,7 @@ class IssueViewSet(mixins.UpdateModelMixin,
             issue, many=False, context={"request": request})
         return Response(page_json.data)
 
-    @list_route(url_path='import-comics')
+    @action(detail=False, url_path='import-comics')
     def import_comics(self, request):
         """
         Updated the user's comic archive collection.
@@ -76,7 +76,7 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublisherSerializer
     lookup_field = 'slug'
 
-    @detail_route()
+    @action(detail=True)
     def series_list(self, request, slug=None):
         """
         Returns a list of series for a publisher.
@@ -114,7 +114,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SeriesSerializer
     lookup_field = 'slug'
 
-    @detail_route()
+    @action(detail=True)
     def issue_list(self, request, slug=None):
         """
         Returns a list of issues for a series.
