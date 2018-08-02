@@ -749,6 +749,10 @@ class ComicImporter(object):
                     cvid=team['id'],)
                 issue_obj.teams.add(team_obj)
 
+                # TODO: Might want to think moving this to only being ran when
+                # a team is created. Would speed things up a bit, but that means
+                # any new character wouldn't be added to the team.
+
                 # Add any existing character to the team.
                 c_response = self.getTeamCharacters(team['api_detail_url'])
                 if c_response is not None:
