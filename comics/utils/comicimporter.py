@@ -172,7 +172,8 @@ class ComicImporter(object):
                         image = utils.test_image(urlretrieve(
                             image_url, 'media/images/' + image_filename)[0])
                     except OSError as e:
-                        self.logger.error('%s' % e)
+                        self.logger.error(
+                            'getCVObjectData retrieve image - %s' % e)
                         image = None
 
         # Create data object
@@ -200,7 +201,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshCharacterData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -227,7 +228,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshCreatorData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -254,7 +255,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshIssueData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -278,7 +279,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshSeriesData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -303,7 +304,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshPublisherData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -330,7 +331,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshTeamData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -358,7 +359,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('refreshArcData - %s' % e)
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -386,7 +387,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('%s' % e)
+            self.logger.error('getIssue - %s' % e)
             response = None
 
         return response
@@ -415,7 +416,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('s' % e)
+            self.logger.error('getSeries - s' % e)
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -433,7 +434,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('getPublisher(volume) - %s' % e)
             return None
 
         params = self.base_params
@@ -448,7 +449,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s', e)
+            self.logger.error('getPublisher(publisher) - %s', e)
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -466,7 +467,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('%s' % e)
+            self.logger.error('getDetailInfo - %s' % e)
             return False
 
         data = self.getCVObjectData(response['results'])
@@ -496,7 +497,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('%s' % e)
+            self.logger.error('getTeamCharacters - %s' % e)
             response = None
 
         return response
@@ -655,7 +656,7 @@ class ComicImporter(object):
                     mod_ts=tz,
                     series=series_obj,)
             except IntegrityError as e:
-                self.logger.error('%s' % e)
+                self.logger.error('Attempting to create issue in db - %s' % e)
                 self.logger.info('Skipping: %s' % md.path)
                 return
 
