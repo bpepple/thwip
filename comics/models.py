@@ -216,7 +216,7 @@ class Issue(models.Model):
                                        auto_now_add=True)
 
     @property
-    def read_percentage(self):
+    def percent_read(self):
         # If status is marked as read return 100%
         if (self.status == 2):
             return 100
