@@ -6,8 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from comics.models import (Settings, Issue, Publisher,
-                           Creator, Series, Team, Arc,
-                           Character)
+                           Creator, Series)
 from comics.utils.comicimporter import ComicImporter
 
 
@@ -20,27 +19,18 @@ class TestImportComics(TestCase):
 
         cls.pub_cvid = 10
         cls.ser_cvid = 796
-        cls.team_cvid = 27589
-        cls.arc_cvid = 56504
         cls.creator_cvid = 41468
         cls.issue_cvid = 286879
-        cls.character_cvid = 2357
 
         cls.dc = Publisher.objects.create(
             cvid=cls.pub_cvid, name='DC Comics', slug='dc-comics')
         cls.bat = Series.objects.create(
             cvid=cls.ser_cvid, name='Batman', slug='batman', publisher=cls.dc)
-        cls.jsa = Team.objects.create(cvid=cls.team_cvid, name='Justice Society of America',
-                                      slug='justice-society-of-america')
-        cls.arc = Arc.objects.create(cvid=cls.arc_cvid, name='The Death of Captain America',
-                                     slug='the-death-of-captain-america')
         cls.creator = Creator.objects.create(cvid=cls.creator_cvid, name='Ed Brubaker',
                                              slug='ed-brubaker')
         cls.issue = Issue.objects.create(series=cls.bat, cvid=cls.issue_cvid,
                                          slug='batman-713', mod_ts=mod_time, date=issue_date,
                                          number='713')
-        cls.aquaman = Character.objects.create(cvid=cls.character_cvid, name='Aquaman',
-                                               slug='aquaman')
 
         test_data_dir = settings.BASE_DIR + os.sep + 'comics/fixtures'
         Settings.objects.create(comics_directory=test_data_dir,
@@ -53,13 +43,6 @@ class TestImportComics(TestCase):
 
         for creator in Creator.objects.all():
             creator.delete()
-
-    def test_refresh_character(self):
-        ci = ComicImporter()
-        ci.refreshCharacterData(self.character_cvid)
-        self.aquaman.refresh_from_db()
-
-        self.assertTrue(self.aquaman.desc)
 
     def test_refresh_publisher(self):
         ci = ComicImporter()
@@ -75,20 +58,6 @@ class TestImportComics(TestCase):
 
         self.assertTrue(self.bat.desc)
         self.assertEqual(self.bat.year, 1940)
-
-    def test_refresh_team(self):
-        ci = ComicImporter()
-        ci.refreshTeamData(self.team_cvid)
-        self.jsa.refresh_from_db()
-
-        self.assertTrue(self.jsa.desc)
-
-    def test_refresh_arc(self):
-        ci = ComicImporter()
-        ci.refreshArcData(self.arc_cvid)
-        self.arc.refresh_from_db()
-
-        self.assertTrue(self.arc.desc)
 
     def test_refresh_creator(self):
         ci = ComicImporter()
