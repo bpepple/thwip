@@ -14,21 +14,17 @@ from django.utils.text import slugify
 import requests
 import requests_cache
 
-from comics.models import (Arc, Character, Creator, Issue,
-                           Publisher, Role, Credits, Series,
-                           Team, Settings)
+from comics.models import (Creator, Issue, Publisher, Role,
+                           Credits, Series, Settings)
 
 from . import utils
 from .comicapi.comicarchive import MetaDataStyle, ComicArchive
 from .comicapi.issuestring import IssueString
 
 
-ARCS_FOLDER = 'arcs'
-CHARACTERS_FOLDERS = 'characters'
 CREATORS_FOLDERS = 'creators'
 ISSUES_FOLDER = 'issues'
 PUBLISHERS_FOLDER = 'publishers'
-TEAMS_FOLDERS = 'teams'
 
 
 def get_recursive_filelist(pathlist):
@@ -42,12 +38,9 @@ def get_recursive_filelist(pathlist):
 
 
 class CVTypeID:
-    Character = '4005'
     Issue = '4000'
     Person = '4040'
     Publisher = '4010'
-    StoryArc = '4045'
-    Team = '4060'
     Volume = '4050'
 
 
@@ -73,14 +66,11 @@ class ComicImporter(object):
                             'api_key': self.api_key}
         self.headers = {'user-agent': 'thwip'}
         # API field strings
-        self.arc_fields = 'deck,description,id,image,name,site_detail_url'
-        self.character_fields = 'deck,description,id,image,name,site_detail_url'
         self.creator_fields = 'deck,description,id,image,name,site_detail_url'
         self.publisher_fields = 'deck,description,id,image,name,site_detail_url'
         self.series_fields = 'api_detail_url,deck,description,id,name,publisher,site_detail_url,start_year'
-        self.issue_fields = 'api_detail_url,character_credits,cover_date,deck,description,id,image,issue_number,name,person_credits,site_detail_url,story_arc_credits,team_credits,volume'
+        self.issue_fields = 'api_detail_url,cover_date,deck,description,id,image,issue_number,name,person_credits,site_detail_url,volume'
         self.refresh_issue_fields = 'api_detail_url,cover_date,deck,description,id,issue_number,name,site_detail_url,volume'
-        self.team_fields = 'characters,deck,description,id,image,name,site_detail_url'
         # Initial Comic Book info to search
         self.style = MetaDataStyle.CIX
 
@@ -189,34 +179,6 @@ class ComicImporter(object):
 
         return data
 
-    def refreshCharacterData(self, cvid):
-        issue_params = self.base_params
-        issue_params['field_list'] = self.character_fields
-
-        try:
-            resp = requests.get(
-                self.baseurl + '/character/' +
-                CVTypeID.Character + '-' + str(cvid),
-                params=issue_params,
-                headers=self.headers,
-            ).json()
-        except requests.exceptions.RequestException as e:
-            self.logger.error('refreshCharacterData - %s' % e)
-            return False
-
-        data = self.getCVObjectData(resp['results'])
-
-        # Currently I'm not refreshing the image until the
-        # cropping code is refactored, so let's remove the image.
-        os.remove(data['image'])
-
-        character = Character.objects.get(cvid=cvid)
-        character.desc = data['desc']
-        character.save()
-        self.logger.info('Refreshed metadata for: %s' % character)
-
-        return True
-
     def refreshCreatorData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.creator_fields
@@ -317,61 +279,6 @@ class ComicImporter(object):
         publisher.desc = data['desc']
         publisher.save()
         self.logger.info('Refresh metadata for: %s' % publisher)
-
-        return True
-
-    def refreshTeamData(self, cvid):
-        issue_params = self.base_params
-        issue_params['field_list'] = self.team_fields
-
-        try:
-            resp = requests.get(
-                self.baseurl + '/team/' + CVTypeID.Team + '-' + str(cvid),
-                params=issue_params,
-                headers=self.headers,
-            ).json()
-        except requests.exceptions.RequestException as e:
-            self.logger.error('refreshTeamData - %s' % e)
-            return False
-
-        data = self.getCVObjectData(resp['results'])
-
-        # Currently I'm not refreshing the image until the
-        # cropping code is refactored, so let's remove the image.
-        os.remove(data['image'])
-
-        team = Team.objects.get(cvid=cvid)
-        team.desc = data['desc']
-        team.save()
-        self.logger.info('Refreshed metadata for: %s' % team)
-
-        return True
-
-    def refreshArcData(self, cvid):
-        issue_params = self.base_params
-        issue_params['field_list'] = self.arc_fields
-
-        try:
-            resp = requests.get(
-                self.baseurl + '/story_arc/' +
-                CVTypeID.StoryArc + '-' + str(cvid),
-                params=issue_params,
-                headers=self.headers,
-            ).json()
-        except requests.exceptions.RequestException as e:
-            self.logger.error('refreshArcData - %s' % e)
-            return False
-
-        data = self.getCVObjectData(resp['results'])
-
-        # Currently I'm not refreshing the image until the
-        # cropping code is refactored, so let's remove the image.
-        os.remove(data['image'])
-
-        arc = Arc.objects.get(cvid=cvid)
-        arc.desc = data['desc']
-        arc.save()
-        self.logger.info('Refreshed metadata for: %s' % arc)
 
         return True
 
@@ -479,28 +386,12 @@ class ComicImporter(object):
         db_obj.desc = data['desc']
         # If the image name from Comic Vine is too large, don't save it since it will
         # cause a DB error. Using 132 as the value since that will take into account the
-        # upload_to value from the longest models (Characters & Pubishers).
+        # upload_to value from the longest model (Pubishers).
         if (len(data['image']) < 132):
             db_obj.image = data['image']
         db_obj.save()
 
         return True
-
-    def getTeamCharacters(self, api_url):
-        params = self.base_params
-        params['field_list'] = self.team_fields
-
-        try:
-            response = requests.get(
-                api_url,
-                params=params,
-                headers=self.headers,
-            ).json()
-        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('getTeamCharacters - %s' % e)
-            response = None
-
-        return response
 
     def create_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
@@ -682,108 +573,6 @@ class ComicImporter(object):
                     # Delete the original image
                     os.remove(p['image'])
                     self.logger.info('Added publisher: %s' % publisher_obj)
-
-            # Add the characters.
-            for ch in issue_response['results']['character_credits']:
-                character_obj, ch_create = Character.objects.get_or_create(
-                    cvid=ch['id'],)
-                issue_obj.characters.add(character_obj)
-
-                if ch_create:
-                    new_slug = orig = slugify(ch['name'])
-                    for x in itertools.count(1):
-                        if not Character.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = '%s-%d' % (orig, x)
-
-                    character_obj.name = ch['name']
-                    character_obj.slug = new_slug
-                    character_obj.save()
-                    # Alright get the detail information now.
-                    res = self.getDetailInfo(character_obj,
-                                             self.character_fields,
-                                             ch['api_detail_url'])
-
-                    if character_obj.image:
-                        self.create_images(character_obj, CHARACTERS_FOLDERS)
-
-                    if res:
-                        self.logger.info('Added character: %s' % character_obj)
-                    else:
-                        self.logger.warning(
-                            'No Character detail was saved for: %s' % character_obj)
-
-            # Add the storyarc.
-            for story_arc in issue_response['results']['story_arc_credits']:
-                story_obj, s_create = Arc.objects.get_or_create(
-                    cvid=story_arc['id'],)
-                issue_obj.arcs.add(story_obj)
-
-                if s_create:
-                    new_slug = orig = slugify(story_arc['name'])
-                    for x in itertools.count(1):
-                        if not Arc.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = '%s-%d' % (orig, x)
-
-                    story_obj.name = story_arc['name']
-                    story_obj.slug = new_slug
-                    story_obj.save()
-
-                    res = self.getDetailInfo(story_obj,
-                                             self.arc_fields,
-                                             story_arc['api_detail_url'])
-
-                    if story_obj.image:
-                        self.create_images(story_obj, ARCS_FOLDER)
-
-                    if res:
-                        self.logger.info('Added storyarc: %s' % story_obj)
-                    else:
-                        self.logger.info('Not Story Arc detail info available for: %s'
-                                         % story_obj)
-
-            # Add the teams
-            for team in issue_response['results']['team_credits']:
-                team_obj, t_create = Team.objects.get_or_create(
-                    cvid=team['id'],)
-                issue_obj.teams.add(team_obj)
-
-                # TODO: Might want to think moving this to only being ran when
-                # a team is created. Would speed things up a bit, but that means
-                # any new character wouldn't be added to the team.
-
-                # Add any existing character to the team.
-                c_response = self.getTeamCharacters(team['api_detail_url'])
-                if c_response is not None:
-                    for character in c_response['results']['characters']:
-                        match = Character.objects.filter(cvid=character['id'])
-                        if match:
-                            match[0].teams.add(team_obj)
-
-                if t_create:
-                    new_slug = orig = slugify(team['name'])
-                    for x in itertools.count(1):
-                        if not Team.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = '%s-%d' % (orig, x)
-
-                    team_obj.name = team['name']
-                    team_obj.slug = new_slug
-                    team_obj.save()
-
-                    res = self.getDetailInfo(team_obj,
-                                             self.team_fields,
-                                             team['api_detail_url'])
-
-                    if team_obj.image:
-                        self.create_images(team_obj, TEAMS_FOLDERS)
-
-                    if res:
-                        self.logger.info('Added team: %s' % team_obj)
-                    else:
-                        self.logger.info('No Team detail info available for: %s'
-                                         % team_obj)
 
             # Add the creators
             for p in issue_response['results']['person_credits']:
