@@ -27,7 +27,7 @@ class IssueViewSet(mixins.UpdateModelMixin,
     queryset = (
         Issue.objects
         .select_related('series')
-        .prefetch_related('credits_set')
+        .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role')
     )
     serializer_class = IssueSerializer
     lookup_field = 'slug'
@@ -124,6 +124,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
             Issue.objects
             .filter(series__slug=series.slug)
             .select_related('series')
+            .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role')
         )
         page = self.paginate_queryset(queryset)
         if page is not None:

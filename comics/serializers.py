@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from comics.models import (Issue, Publisher, Series)
+from comics.models import (Credits, Issue, Publisher, Role, Series)
 from comics.utils.reader import ImageAPIHandler
 
 
@@ -19,10 +19,27 @@ class ComicPageSerializer(serializers.ModelSerializer):
         return data_uri
 
 
+class RoleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Role
+        fields = ('name',)
+
+
+class CreditsSerializer(serializers.ModelSerializer):
+    creator = serializers.ReadOnlyField(source='creator.name')
+    role = RoleSerializer('role', many=True)
+
+    class Meta:
+        model = Credits
+        fields = ('creator', 'role')
+
+
 class IssueSerializer(serializers.ModelSerializer):
     series = serializers.SlugRelatedField(many=False, read_only=True,
                                           slug_field='slug')
-    creators = serializers.StringRelatedField(many=True, read_only=True)
+    credits = CreditsSerializer(source='credits_set', many=True,
+                                read_only=True)
     percent_read = serializers.ReadOnlyField
     leaf = serializers.IntegerField()
 
@@ -30,7 +47,7 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
                   'leaf', 'page_count', 'percent_read', 'status', 'desc', 'image',
-                  'creators')
+                  'credits')
         read_only_fields = ('__str__', 'slug', 'cvurl', 'name', 'number', 'date',
                             'page_count', 'desc', 'image')
         lookup_field = 'slug'
