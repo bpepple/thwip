@@ -105,12 +105,6 @@ class Series(models.Model):
         return self.issue_set.all().count()
 
     @cached_property
-    def unread_issue_count(self):
-        if hasattr(self, '_prefetched_objects_cache') and 'issue' in self._prefetched_objects_cache:
-            return len([x for x in self.issue_set.all() if x.status is not 2])
-        return self.issue_set.exclude(status=2).count()
-
-    @cached_property
     def read_issue_count(self):
         if hasattr(self, '_prefetched_objects_cache') and 'issue' in self._prefetched_objects_cache:
             return len([x for x in self.issue_set.all() if x.status is 2])
