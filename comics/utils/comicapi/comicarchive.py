@@ -18,11 +18,9 @@ from io import StringIO
 import os
 import sys
 import tempfile
-import subprocess
 import zipfile
 
 from natsort import natsorted
-from PyPDF2 import PdfFileReader
 
 from .comicinfoxml import ComicInfoXML
 from .filenameparser import FileNameParser
@@ -189,40 +187,11 @@ class UnknownArchiver:
         return []
 
 
-class PdfArchiver:
-
-    def __init__(self, path):
-        self.path = path
-
-    def getArchiveComment(self):
-        return ""
-
-    def setArchiveComment(self, comment):
-        return False
-
-    def readArchiveFile(self, page_num):
-        return subprocess.check_output(
-            ['mudraw', '-o', '-', self.path, str(int(os.path.basename(page_num)[:-4]))])
-
-    def writeArchiveFile(self, archive_file, data):
-        return False
-
-    def removeArchiveFile(self, archive_file):
-        return False
-
-    def getArchiveFilenameList(self):
-        out = []
-        pdf = PdfFileReader(open(self.path, 'rb'))
-        for page in range(1, pdf.getNumPages() + 1):
-            out.append("/%04d.jpg" % (page))
-        return out
-
-
 class ComicArchive:
     logo_data = None
 
     class ArchiveType:
-        Zip, Pdf, Unknown = range(3)
+        Zip, Unknown = range(2)
 
     def __init__(self, path, default_image_path=None):
         self.path = path
@@ -235,9 +204,6 @@ class ComicArchive:
         if self.zipTest():
             self.archive_type = self.ArchiveType.Zip
             self.archiver = ZipArchiver(self.path)
-        elif os.path.basename(self.path)[-3:] == 'pdf':
-            self.archive_type = self.ArchiveType.Pdf
-            self.archiver = PdfArchiver(self.path)
 
     def resetCache(self):
         """ Clears the cached data """
@@ -260,9 +226,6 @@ class ComicArchive:
     def isZip(self):
         return self.archive_type == self.ArchiveType.Zip
 
-    def isPdf(self):
-        return self.archive_type == self.ArchiveType.Pdf
-
     def isWritable(self):
         if self.archive_type == self.ArchiveType.Unknown:
             return False
@@ -276,7 +239,7 @@ class ComicArchive:
 
     def seemsToBeAComicArchive(self):
         if (
-            (self.isZip() or self.isPdf())
+            (self.isZip())
             and
             (self.getNumberOfPages() > 0)
         ):
