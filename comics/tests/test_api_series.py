@@ -24,7 +24,8 @@ class GetAllSeriesTest(TestCase):
                                           publisher=publisher_obj)
         batman_obj = Series.objects.create(cvid='4321', cvurl='http://2.com',
                                            name='Batman', slug='batman', publisher=publisher_obj)
-        # Need to create the issues so the series image serializer doesn't kick up an error.
+        # Need to create the issues so the series image serializer doesn't kick
+        # up an error.
         Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1',
                              file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1',
                              series=super_obj, image="image/issues/super.jpg")
@@ -55,6 +56,12 @@ class GetSingleSeriesTest(TestCase):
         Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='thor-1',
                              file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1',
                              series=cls.thor, image="image/issues/bat.jpg")
+
+    def test_absolute_url(self):
+        reverse_url = reverse('api:series-detail',
+                              kwargs={'slug': self.thor.slug})
+        absolute_url = self.thor.get_absolute_url()
+        self.assertEqual(reverse_url, absolute_url)
 
     def test_get_valid_single_series(self):
         resp = self.client.get(

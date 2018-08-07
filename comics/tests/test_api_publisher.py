@@ -33,6 +33,12 @@ class GetSinglePublisherTest(TestCase):
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_absolute_url(self):
+        reverse_url = reverse('api:publisher-detail',
+                              kwargs={'slug': self.dc.slug})
+        absolute_url = self.dc.get_absolute_url()
+        self.assertEqual(reverse_url, absolute_url)
+
     def test_get_invalid_single_publisher(self):
         response = self.client.get(
             reverse('api:publisher-detail', kwargs={'slug': 'dark-horse'}))
