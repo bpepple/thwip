@@ -17,7 +17,6 @@ limitations under the License.
 from io import StringIO
 import os
 import sys
-import tempfile
 import zipfile
 
 from natsort import natsorted
@@ -45,22 +44,6 @@ class ZipArchiver:
     def __init__(self, path):
         self.path = path
 
-    def getArchiveComment(self):
-        zf = zipfile.ZipFile(self.path, "r")
-        comment = zf.comment
-        zf.close()
-        return comment
-
-    def setArchiveComment(self, comment):
-        try:
-            zf = zipfile.ZipFile(self.path, "a")
-            zf.comment = comment
-            zf.close()
-        except:
-            return False
-        else:
-            return True
-
     def readArchiveFile(self, archive_file):
         data = ""
         zf = zipfile.ZipFile(self.path, "r")
@@ -81,26 +64,6 @@ class ZipArchiver:
             zf.close()
         return data
 
-    def removeArchiveFile(self, archive_file):
-        try:
-            self.rebuildZipFile([archive_file])
-        except:
-            return False
-        else:
-            return True
-
-    def writeArchiveFile(self, archive_file, data):
-        try:
-            self.rebuildZipFile([archive_file])
-            # Now add the archive file as a new one
-            zf = zipfile.ZipFile(self.path, mode="a",
-                                 compression=zipfile.ZIP_DEFLATED)
-            zf.writestr(archive_file, data)
-            zf.close()
-            return True
-        except:
-            return False
-
     def getArchiveFilenameList(self):
         try:
             zf = zipfile.ZipFile(self.path, "r")
@@ -112,54 +75,6 @@ class ZipArchiver:
                 e, self.path)
             return []
 
-    def rebuildZipFile(self, exclude_list):
-        """
-        Zip helper func
-
-        This recompresses the zip archive, without the files in the exclude_list
-        """
-        tmp_fd, tmp_name = tempfile.mkdtemp(dir=os.path.dirname(self.path))
-        os.close(tmp_fd)
-
-        zin = zipfile.ZipFile(self.path, "r")
-        zout = zipfile.ZipFile(tmp_name, "w")
-        for item in zin.infolist():
-            buffer = zin.read(item.filename)
-            if (item.filename not in exclude_list):
-                zout.writestr(item, buffer)
-
-        # Preserve the old comment
-        zout.comment = zin.comment
-
-        zout.close()
-        zin.close()
-
-        # Replace with the new file
-        os.remove(self.path)
-        os.rename(tmp_name, self.path)
-
-    def copyFromArchive(self, otherArchive):
-        """ Replace the current zip with one copied from another archive. """
-        try:
-            zout = zipfile.ZipFile(self.path, "w")
-            for fname in otherArchive.getArchiveFilenameList():
-                data = otherArchive.readArchiveFile(fname)
-                if data is not None:
-                    zout.writestr(fname, data)
-            zout.close()
-
-            # Preserve the old comment
-            comment = otherArchive.getArchiveComment()
-            if comment is not None:
-                if not self.writeZipComment(self.path, comment):
-                    return False
-        except Exception as e:
-            print >> sys.stderr, u"Error while copying to {0}: {1}".format(
-                self.path, e)
-            return False
-        else:
-            return True
-
 
 class UnknownArchiver:
 
@@ -168,20 +83,8 @@ class UnknownArchiver:
     def __init__(self, path):
         self.path = path
 
-    def getArchiveComment(self):
-        return ""
-
-    def setArchiveComment(self, comment):
-        return False
-
     def readArchiveFile(self):
         return ""
-
-    def writeArchiveFile(self, archive_file, data):
-        return False
-
-    def removeArchiveFile(self, archive_file):
-        return False
 
     def getArchiveFilenameList(self):
         return []
@@ -253,23 +156,11 @@ class ComicArchive:
         else:
             return GenericMetadata()
 
-    def writeMetadata(self, metadata, style):
-        retcode = None
-        if style == MetaDataStyle.CIX:
-            retcode = self.writeCIX(metadata)
-        return retcode
-
     def hasMetadata(self, style):
         if style == MetaDataStyle.CIX:
             return self.hasCIX()
         else:
             return False
-
-    def removeMetadata(self, style):
-        retcode = True
-        if style == MetaDataStyle.CIX:
-            retcode = self.removeCIX()
-        return retcode
 
     def getPage(self, index):
         image_data = None
@@ -409,32 +300,6 @@ class ComicArchive:
             raw_cix = ""
         return raw_cix
 
-    def writeCIX(self, metadata):
-        if metadata is not None:
-            self.applyArchiveInfoToMetadata(metadata, calc_page_sizes=True)
-            cix_string = ComicInfoXML().stringFromMetadata(metadata)
-            write_success = self.archiver.writeArchiveFile(
-                self.ci_xml_filename,
-                cix_string)
-            if write_success:
-                self.has_cix = True
-                self.cix_md = metadata
-            self.resetCache()
-            return write_success
-        else:
-            return False
-
-    def removeCIX(self):
-        if self.hasCIX():
-            write_success = self.archiver.removeArchiveFile(
-                self.ci_xml_filename)
-            if write_success:
-                self.has_cix = False
-                self.cix_md = None
-            self.resetCache()
-            return write_success
-        return True
-
     def hasCIX(self):
         if self.has_cix is None:
             if not self.seemsToBeAComicArchive():
@@ -493,11 +358,3 @@ class ComicArchive:
         metadata.isEmpty = False
 
         return metadata
-
-    def exportAsZip(self, zipfilename):
-        if self.archive_type == self.ArchiveType.Zip:
-            # nothing to do, we're already a zip
-            return True
-
-        zip_archiver = ZipArchiver(zipfilename)
-        return zip_archiver.copyFromArchive(self.archiver)
