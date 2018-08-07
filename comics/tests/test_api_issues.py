@@ -18,15 +18,20 @@ class GetAllIssueTest(APITestCase):
     def setUpTestData(cls):
         publisher_obj = Publisher.objects.create(
             name='DC Comics', slug='dc-comics')
-        series_obj = Series.objects.create(
-            cvid='1234', cvurl='http://1.com', name='Superman', slug='superman', publisher=publisher_obj)
+        cls.superman = Series.objects.create(cvid='1234', cvurl='http://1.com', name='Superman',
+                                             slug='superman', publisher=publisher_obj)
         Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1', page_count='21',
-                             file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=series_obj)
+                             file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
         Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='batman-1',
-                             file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=series_obj)
+                             file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
 
     def test_view_url_accessible_by_name(self):
         resp = self.client.get(reverse('api:issue-list'))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_series_issue_list(self):
+        resp = self.client.get(reverse('api:series-issue-list',
+                                       kwargs={'slug': self.superman.slug}))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
