@@ -16,11 +16,6 @@ class TestComicArchive(SimpleTestCase):
         z = ca.isZip()
         self.assertTrue(z)
 
-    def test_if_folder(self):
-        ca = ComicArchive(TEST_DATA)
-        z = ca.isFolder()
-        self.assertFalse(z)
-
     def test_if_writable(self):
         ca = ComicArchive(TEST_DATA)
         z = ca.isWritable()

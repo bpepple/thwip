@@ -163,70 +163,6 @@ class ZipArchiver:
             return True
 
 
-class FolderArchiver:
-
-    """Folder implementation"""
-
-    def __init__(self, path):
-        self.path = path
-        self.comment_file_name = "ComicTaggerFolderComment.txt"
-
-    def getArchiveComment(self):
-        return self.readArchiveFile(self.comment_file_name)
-
-    def setArchiveComment(self, comment):
-        return self.writeArchiveFile(self.comment_file_name, comment)
-
-    def readArchiveFile(self, archive_file):
-
-        data = ""
-        fname = os.path.join(self.path, archive_file)
-        try:
-            with open(fname, 'rb') as f:
-                data = f.read()
-                f.close()
-        except IOError:
-            pass
-
-        return data
-
-    def writeArchiveFile(self, archive_file, data):
-
-        fname = os.path.join(self.path, archive_file)
-        try:
-            with open(fname, 'w+') as f:
-                f.write(data)
-                f.close()
-        except:
-            return False
-        else:
-            return True
-
-    def removeArchiveFile(self, archive_file):
-
-        fname = os.path.join(self.path, archive_file)
-        try:
-            os.remove(fname)
-        except:
-            return False
-        else:
-            return True
-
-    def getArchiveFilenameList(self):
-        return self.listFiles(self.path)
-
-    def listFiles(self, folder):
-
-        itemlist = list()
-
-        for item in os.listdir(folder):
-            itemlist.append(item)
-            if os.path.isdir(item):
-                itemlist.extend(self.listFiles(os.path.join(folder, item)))
-
-        return itemlist
-
-
 class UnknownArchiver:
 
     """Unknown implementation"""
@@ -286,7 +222,7 @@ class ComicArchive:
     logo_data = None
 
     class ArchiveType:
-        Zip, Folder, Pdf, Unknown = range(4)
+        Zip, Pdf, Unknown = range(3)
 
     def __init__(self, path, default_image_path=None):
         self.path = path
@@ -327,16 +263,10 @@ class ComicArchive:
     def isPdf(self):
         return self.archive_type == self.ArchiveType.Pdf
 
-    def isFolder(self):
-        return self.archive_type == self.ArchiveType.Folder
-
     def isWritable(self):
         if self.archive_type == self.ArchiveType.Unknown:
             return False
         elif not os.access(self.path, os.W_OK):
-            return False
-        elif ((self.archive_type != self.ArchiveType.Folder) and
-                (not os.access(os.path.dirname(os.path.abspath(self.path)), os.W_OK))):
             return False
         return True
 
