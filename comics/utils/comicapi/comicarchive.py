@@ -24,11 +24,10 @@ import zipfile
 from natsort import natsorted
 from PyPDF2 import PdfFileReader
 
-from .comet import CoMet
 from .comicbookinfo import ComicBookInfo
 from .comicinfoxml import ComicInfoXML
 from .filenameparser import FileNameParser
-from .genericmetadata import GenericMetadata, PageType
+from .genericmetadata import GenericMetadata
 
 
 try:
@@ -41,8 +40,7 @@ except ImportError:
 class MetaDataStyle:
     CBI = 0
     CIX = 1
-    COMET = 2
-    name = ['ComicBookLover', 'ComicRack', 'CoMet']
+    name = ['ComicBookLover', 'ComicRack']
 
 
 class ZipArchiver:
@@ -295,7 +293,6 @@ class ComicArchive:
     def __init__(self, path, default_image_path=None):
         self.path = path
         self.ci_xml_filename = 'ComicInfo.xml'
-        self.comet_default_filename = 'CoMet.xml'
         self.resetCache()
         self.archive_type = self.ArchiveType.Unknown
         self.archiver = UnknownArchiver(self.path)
@@ -312,13 +309,10 @@ class ComicArchive:
         """ Clears the cached data """
         self.has_cix = None
         self.has_cbi = None
-        self.has_comet = None
-        self.comet_filename = None
         self.page_count = None
         self.page_list = None
         self.cix_md = None
         self.cbi_md = None
-        self.comet_md = None
 
     def loadCache(self, style_list):
         for style in style_list:
@@ -371,8 +365,6 @@ class ComicArchive:
             return self.readCIX()
         elif style == MetaDataStyle.CBI:
             return self.readCBI()
-        elif style == MetaDataStyle.COMET:
-            return self.readCoMet()
         else:
             return GenericMetadata()
 
@@ -382,8 +374,6 @@ class ComicArchive:
             retcode = self.writeCIX(metadata)
         elif style == MetaDataStyle.CBI:
             retcode = self.writeCBI(metadata)
-        elif style == MetaDataStyle.COMET:
-            retcode = self.writeCoMet(metadata)
         return retcode
 
     def hasMetadata(self, style):
@@ -391,8 +381,6 @@ class ComicArchive:
             return self.hasCIX()
         elif style == MetaDataStyle.CBI:
             return self.hasCBI()
-        elif style == MetaDataStyle.COMET:
-            return self.hasCoMet()
         else:
             return False
 
@@ -402,8 +390,6 @@ class ComicArchive:
             retcode = self.removeCIX()
         elif style == MetaDataStyle.CBI:
             retcode = self.removeCBI()
-        elif style == MetaDataStyle.COMET:
-            retcode = self.removeCoMet()
         return retcode
 
     def getPage(self, index):
@@ -630,103 +616,6 @@ class ComicArchive:
             else:
                 self.has_cix = False
         return self.has_cix
-
-    def readCoMet(self):
-        if self.comet_md is None:
-            raw_comet = self.readRawCoMet()
-            if raw_comet is None or raw_comet == "":
-                self.comet_md = GenericMetadata()
-            else:
-                self.comet_md = CoMet().metadataFromString(raw_comet)
-
-            self.comet_md.setDefaultPageList(self.getNumberOfPages())
-            # use the coverImage value from the comet_data to mark the cover in this struct
-            # walk through list of images in file, and find the matching one for md.coverImage
-            # need to remove the existing one in the default
-            if self.comet_md.coverImage is not None:
-                cover_idx = 0
-                for idx, f in enumerate(self.getPageNameList()):
-                    if self.comet_md.coverImage == f:
-                        cover_idx = idx
-                        break
-                if cover_idx != 0:
-                    del (self.comet_md.pages[0]['Type'])
-                    self.comet_md.pages[cover_idx][
-                        'Type'] = PageType.FrontCover
-
-        return self.comet_md
-
-    def readRawCoMet(self):
-        if not self.hasCoMet():
-            print >> sys.stderr, self.path, "doesn't have CoMet data!"
-            return None
-
-        try:
-            raw_comet = self.archiver.readArchiveFile(self.comet_filename)
-        except IOError:
-            print >> sys.stderr, u"Error reading in raw CoMet!"
-            raw_comet = ""
-        return raw_comet
-
-    def writeCoMet(self, metadata):
-
-        if metadata is not None:
-            if not self.hasCoMet():
-                self.comet_filename = self.comet_default_filename
-
-            self.applyArchiveInfoToMetadata(metadata)
-            # Set the coverImage value, if it's not the first page
-            cover_idx = int(metadata.getCoverPageIndexList()[0])
-            if cover_idx != 0:
-                metadata.coverImage = self.getPageName(cover_idx)
-
-            comet_string = CoMet().stringFromMetadata(metadata)
-            write_success = self.archiver.writeArchiveFile(
-                self.comet_filename,
-                comet_string)
-            if write_success:
-                self.has_comet = True
-                self.comet_md = metadata
-            self.resetCache()
-            return write_success
-        else:
-            return False
-
-    def removeCoMet(self):
-        if self.hasCoMet():
-            write_success = self.archiver.removeArchiveFile(
-                self.comet_filename)
-            if write_success:
-                self.has_comet = False
-                self.comet_md = None
-            self.resetCache()
-            return write_success
-        return True
-
-    def hasCoMet(self):
-        if self.has_comet is None:
-            self.has_comet = False
-            if not self.seemsToBeAComicArchive():
-                return self.has_comet
-
-            # look at all xml files in root, and search for CoMet data, get
-            # first
-            for n in self.archiver.getArchiveFilenameList():
-                if (os.path.dirname(n) == "" and
-                        os.path.splitext(n)[1].lower() == '.xml'):
-                    # read in XML file, and validate it
-                    try:
-                        data = self.archiver.readArchiveFile(n)
-                    except:
-                        data = ""
-                        print >> sys.stderr, u"Error reading in Comet XML for validation!"
-                    if CoMet().validateString(data):
-                        # since we found it, save it!
-                        self.comet_filename = n
-                        self.has_comet = True
-                        break
-
-            return self.has_comet
 
     def applyArchiveInfoToMetadata(self, md, calc_page_sizes=False):
         md.pageCount = self.getNumberOfPages()

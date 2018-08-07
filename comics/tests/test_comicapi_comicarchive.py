@@ -46,11 +46,6 @@ class TestComicArchive(SimpleTestCase):
         z = ca.hasCIX()
         self.assertTrue(z)
 
-    def test_cix_has_CoMeT(self):
-        ca = ComicArchive(TEST_DATA)
-        z = ca.hasCoMet()
-        self.assertFalse(z)
-
     def test_read_cix(self):
         ca = ComicArchive(TEST_DATA)
         md = ca.readCIX()
