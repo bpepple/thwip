@@ -3,7 +3,9 @@ import os
 
 from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 
 from comics.models import (Settings, Issue, Publisher,
                            Creator, Role, Series)
@@ -83,15 +85,25 @@ class TestImportComics(TestCase):
 
         cover_date = datetime.strptime('December 01, 1965', '%B %d, %Y')
         issue = Issue.objects.get(cvid=8192)
-        role = Role.objects.get(id=1)
+
         # Change the issue leaf so we can check read_percent.
         leaf = issue.leaf
         issue.leaf = leaf + 2
         issue.save()
 
-        # Check the Role Models str()
-        self.assertEqual(role.__str__(), role.name)
         self.assertEqual(str(issue), 'Captain Atom #078')
         self.assertEqual(issue.percent_read, 12)
         self.assertEqual(issue.date, datetime.date(cover_date))
         self.assertTrue(issue.image)
+
+    def test_get_page(self):
+        ci = ComicImporter()
+        ci.import_comic_files()
+
+        role = Role.objects.get(id=1)
+        issue = Issue.objects.get(cvid=8192)
+        resp = self.client.get(reverse('api:issue-get-page',
+                                       kwargs={'slug': issue.slug, 'page': 1}))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # Check the Role Models str()
+        self.assertEqual(role.__str__(), role.name)
