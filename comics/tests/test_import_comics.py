@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from comics.models import (Settings, Issue, Publisher,
-                           Creator, Series)
+                           Creator, Role, Series)
 from comics.utils.comicimporter import ComicImporter
 
 
@@ -33,8 +33,8 @@ class TestImportComics(TestCase):
                                          number='713')
 
         test_data_dir = settings.BASE_DIR + os.sep + 'comics/fixtures'
-        Settings.objects.create(comics_directory=test_data_dir,
-                                api_key='27431e6787042105bd3e47e169a624521f89f3a4')
+        cls. settings = Settings.objects.create(comics_directory=test_data_dir,
+                                                api_key='27431e6787042105bd3e47e169a624521f89f3a4')
 
     def tearDown(self):
         # Clean up all the images that were downloaded.
@@ -43,6 +43,9 @@ class TestImportComics(TestCase):
 
         for creator in Creator.objects.all():
             creator.delete()
+
+    def test_settings_str(self):
+        self.assertEqual(self.settings.__str__(), 'Settings')
 
     def test_refresh_publisher(self):
         ci = ComicImporter()
@@ -80,7 +83,10 @@ class TestImportComics(TestCase):
 
         cover_date = datetime.strptime('December 01, 1965', '%B %d, %Y')
         issue = Issue.objects.get(cvid=8192)
+        role = Role.objects.get(id=1)
 
+        # Check the Role Models str()
+        self.assertEqual(role.__str__(), role.name)
         self.assertEqual(str(issue), 'Captain Atom #078')
         self.assertEqual(issue.date, datetime.date(cover_date))
         self.assertTrue(issue.image)
