@@ -17,13 +17,13 @@ class GetAllSeriesTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        publisher_obj = Publisher.objects.create(
+        cls.dc = Publisher.objects.create(
             name='DC Comics', slug='dc-comics')
         super_obj = Series.objects.create(cvid='1234', cvurl='http://1.com',
                                           name='Superman', slug='superman',
-                                          publisher=publisher_obj)
+                                          publisher=cls.dc)
         batman_obj = Series.objects.create(cvid='4321', cvurl='http://2.com',
-                                           name='Batman', slug='batman', publisher=publisher_obj)
+                                           name='Batman', slug='batman', publisher=cls.dc)
         # Need to create the issues so the series image serializer doesn't kick
         # up an error.
         Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1',
@@ -35,6 +35,11 @@ class GetAllSeriesTest(TestCase):
 
     def test_view_url_accessible_by_name(self):
         resp = self.client.get(reverse('api:series-list'))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_publisher_series_list(self):
+        resp = self.client.get(reverse('api:publisher-series-list',
+                                       kwargs={'slug': self.dc.slug}))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
