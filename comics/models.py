@@ -47,9 +47,6 @@ class Creator(models.Model):
     image = models.ImageField(
         upload_to='images/creators/', max_length=150, blank=True)
 
-    def get_absolute_url(self):
-        return reverse('creator:detail', args=[self.slug])
-
     def __str__(self):
         return self.name
 
@@ -67,7 +64,7 @@ class Publisher(models.Model):
         upload_to='images/publishers/', max_length=150, blank=True)
 
     def get_absolute_url(self):
-        return reverse('publisher:detail', args=[self.slug])
+        return reverse('api:publisher-detail', args=[self.slug])
 
     def series_count(self):
         return self.series_set.all().count()
@@ -95,7 +92,7 @@ class Series(models.Model):
     desc = models.TextField('Description', max_length=500, blank=True)
 
     def get_absolute_url(self):
-        return reverse('series:detail', args=[self.slug])
+        return reverse('api:series-detail', args=[self.slug])
 
     def __str__(self):
         return self.name
@@ -162,7 +159,7 @@ class Issue(models.Model):
         return round((read / self.page_count) * 100)
 
     def get_absolute_url(self):
-        return reverse('issue:detail', args=[self.slug])
+        return reverse('api:issue-detail', args=[self.slug])
 
     def __str__(self):
         return self.series.name + ' #' + str(self.number)
