@@ -24,7 +24,6 @@ import zipfile
 from natsort import natsorted
 from PyPDF2 import PdfFileReader
 
-from .comicbookinfo import ComicBookInfo
 from .comicinfoxml import ComicInfoXML
 from .filenameparser import FileNameParser
 from .genericmetadata import GenericMetadata
@@ -38,9 +37,8 @@ except ImportError:
 
 
 class MetaDataStyle:
-    CBI = 0
     CIX = 1
-    name = ['ComicBookLover', 'ComicRack']
+    name = ['ComicRack', ]
 
 
 class ZipArchiver:
@@ -308,11 +306,9 @@ class ComicArchive:
     def resetCache(self):
         """ Clears the cached data """
         self.has_cix = None
-        self.has_cbi = None
         self.page_count = None
         self.page_list = None
         self.cix_md = None
-        self.cbi_md = None
 
     def loadCache(self, style_list):
         for style in style_list:
@@ -345,8 +341,6 @@ class ComicArchive:
         return True
 
     def isWritableForStyle(self, data_style):
-        if data_style == MetaDataStyle.CBI:
-            return False
 
         return self.isWritable()
 
@@ -363,8 +357,6 @@ class ComicArchive:
     def readMetadata(self, style):
         if style == MetaDataStyle.CIX:
             return self.readCIX()
-        elif style == MetaDataStyle.CBI:
-            return self.readCBI()
         else:
             return GenericMetadata()
 
@@ -372,15 +364,11 @@ class ComicArchive:
         retcode = None
         if style == MetaDataStyle.CIX:
             retcode = self.writeCIX(metadata)
-        elif style == MetaDataStyle.CBI:
-            retcode = self.writeCBI(metadata)
         return retcode
 
     def hasMetadata(self, style):
         if style == MetaDataStyle.CIX:
             return self.hasCIX()
-        elif style == MetaDataStyle.CBI:
-            return self.hasCBI()
         else:
             return False
 
@@ -388,8 +376,6 @@ class ComicArchive:
         retcode = True
         if style == MetaDataStyle.CIX:
             retcode = self.removeCIX()
-        elif style == MetaDataStyle.CBI:
-            retcode = self.removeCBI()
         return retcode
 
     def getPage(self, index):
@@ -500,57 +486,6 @@ class ComicArchive:
         if self.page_count is None:
             self.page_count = len(self.getPageNameList())
         return self.page_count
-
-    def readCBI(self):
-        if self.cbi_md is None:
-            raw_cbi = self.readRawCBI()
-            if raw_cbi is None:
-                self.cbi_md = GenericMetadata()
-            else:
-                self.cbi_md = ComicBookInfo().metadataFromString(raw_cbi)
-
-            self.cbi_md.setDefaultPageList(self.getNumberOfPages())
-
-        return self.cbi_md
-
-    def readRawCBI(self):
-        if (not self.hasCBI()):
-            return None
-
-        return self.archiver.getArchiveComment()
-
-    def hasCBI(self):
-        if self.has_cbi is None:
-            if not self.seemsToBeAComicArchive():
-                self.has_cbi = False
-            else:
-                comment = self.archiver.getArchiveComment()
-                self.has_cbi = ComicBookInfo().validateString(comment)
-
-        return self.has_cbi
-
-    def writeCBI(self, metadata):
-        if metadata is not None:
-            self.applyArchiveInfoToMetadata(metadata)
-            cbi_string = ComicBookInfo().stringFromMetadata(metadata)
-            write_success = self.archiver.setArchiveComment(cbi_string)
-            if write_success:
-                self.has_cbi = True
-                self.cbi_md = metadata
-            self.resetCache()
-            return write_success
-        else:
-            return False
-
-    def removeCBI(self):
-        if self.hasCBI():
-            write_success = self.archiver.setArchiveComment("")
-            if write_success:
-                self.has_cbi = False
-                self.cbi_md = None
-            self.resetCache()
-            return write_success
-        return True
 
     def readCIX(self):
         if self.cix_md is None:

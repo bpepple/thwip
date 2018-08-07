@@ -431,8 +431,6 @@ class ComicImporter(object):
             self.read_count += 1
             if ca.hasMetadata(MetaDataStyle.CIX):
                 style = MetaDataStyle.CIX
-            elif ca.hasMetadata(MetaDataStyle.CBI):
-                style = MetaDataStyle.CBI
             else:
                 style = None
 

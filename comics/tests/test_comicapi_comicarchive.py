@@ -36,11 +36,6 @@ class TestComicArchive(SimpleTestCase):
         z = ca.getNumberOfPages()
         self.assertEqual(z, 24)
 
-    def test_cix_has_cbi(self):
-        ca = ComicArchive(TEST_DATA)
-        z = ca.hasCBI()
-        self.assertFalse(z)
-
     def test_cix_has_cix(self):
         ca = ComicArchive(TEST_DATA)
         z = ca.hasCIX()
