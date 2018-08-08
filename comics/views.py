@@ -8,6 +8,7 @@ from comics.serializers import (ComicPageSerializer, IssueSerializer,
                                 PublisherSerializer, ReaderSerializer,
                                 SeriesSerializer)
 from comics.tasks import import_comic_files_task
+from django.http import Http404
 
 
 class IssueViewSet(mixins.UpdateModelMixin,
@@ -60,6 +61,25 @@ class IssueViewSet(mixins.UpdateModelMixin,
         import_comic_files_task.apply_async()
         return Response(data={"import_comics": "Started imports."})
 
+    @action(detail=False)
+    def recent(self, request):
+        """
+        Returns the last 90 comic archives imported.
+        """
+        queryset = (
+            Issue.objects
+            .select_related('series')
+            .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role')
+            .order_by('-import_date')[:90]
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = IssueSerializer(
+                page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+        else:
+            raise Http404()
+
 
 class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -93,9 +113,8 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = SeriesSerializer(
                 page, many=True, context={"request": request})
             return self.get_paginated_response(serializer.data)
-        series_json = SeriesSerializer(
-            queryset, many=True, context={"request": request})
-        return Response(series_json.data)
+        else:
+            raise Http404()
 
 
 class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -131,6 +150,5 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = IssueSerializer(
                 page, many=True, context={"request": request})
             return self.get_paginated_response(serializer.data)
-        issues_json = IssueSerializer(
-            queryset, many=True, context={"request": request})
-        return Response(issues_json.data)
+        else:
+            raise Http404()

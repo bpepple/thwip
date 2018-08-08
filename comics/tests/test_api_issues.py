@@ -29,6 +29,10 @@ class GetAllIssueTest(APITestCase):
         resp = self.client.get(reverse('api:issue-list'))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_recent_issue_list(self):
+        resp = self.client.get(reverse('api:issue-recent'))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
     def test_series_issue_list(self):
         resp = self.client.get(reverse('api:series-issue-list',
                                        kwargs={'slug': self.superman.slug}))
