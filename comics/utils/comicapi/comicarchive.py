@@ -129,17 +129,6 @@ class ComicArchive:
     def isZip(self):
         return self.archive_type == self.ArchiveType.Zip
 
-    def isWritable(self):
-        if self.archive_type == self.ArchiveType.Unknown:
-            return False
-        elif not os.access(self.path, os.W_OK):
-            return False
-        return True
-
-    def isWritableForStyle(self, data_style):
-
-        return self.isWritable()
-
     def seemsToBeAComicArchive(self):
         if (
             (self.isZip())
