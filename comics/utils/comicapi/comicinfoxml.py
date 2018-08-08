@@ -20,25 +20,6 @@ from .genericmetadata import GenericMetadata
 
 
 class ComicInfoXML(object):
-    writer_synonyms = ['writer', 'plotter', 'scripter']
-    penciller_synonyms = ['artist', 'penciller', 'penciler', 'breakdowns']
-    inker_synonyms = ['inker', 'artist', 'finishes']
-    colorist_synonyms = ['colorist', 'colourist', 'colorer', 'colourer']
-    letterer_synonyms = ['letterer']
-    cover_synonyms = ['cover', 'covers', 'coverartist', 'cover artist']
-    editor_synonyms = ['editor']
-
-    def getParseableCredits(self):
-        parseable_credits = []
-        parseable_credits.extend(self.writer_synonyms)
-        parseable_credits.extend(self.penciller_synonyms)
-        parseable_credits.extend(self.inker_synonyms)
-        parseable_credits.extend(self.colorist_synonyms)
-        parseable_credits.extend(self.letterer_synonyms)
-        parseable_credits.extend(self.colorist_synonyms)
-        parseable_credits.extend(self.editor_synonyms)
-
-        return parseable_credits
 
     def metadataFromString(self, s):
         tree = ET.ElementTree(ET.fromstring(s))
