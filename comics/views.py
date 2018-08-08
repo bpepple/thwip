@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -8,7 +9,6 @@ from comics.serializers import (ComicPageSerializer, IssueSerializer,
                                 PublisherSerializer, ReaderSerializer,
                                 SeriesSerializer)
 from comics.tasks import import_comic_files_task
-from django.http import Http404
 
 
 class IssueViewSet(mixins.UpdateModelMixin,
