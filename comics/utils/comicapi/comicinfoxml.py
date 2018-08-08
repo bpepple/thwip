@@ -17,7 +17,6 @@ limitations under the License.
 import xml.etree.ElementTree as ET
 
 from .genericmetadata import GenericMetadata
-from .utils import listToString
 
 
 class ComicInfoXML(object):
@@ -45,151 +44,6 @@ class ComicInfoXML(object):
         tree = ET.ElementTree(ET.fromstring(s))
 
         return self.convertXMLToMetadata(tree)
-
-    def stringFromMetadata(self, metad):
-        header = '<?xml version="1.0"?>\n'
-        tree = self.convertMetadataToXML(self, metad)
-
-        return header + ET.tostring(tree.getroot())
-
-    def indent(self, elem, level=0):
-        # For making the XML output readable
-        i = "\n" + level * "  "
-        if len(elem):
-            if not elem.text or not elem.text.strip():
-                elem.text = i + "  "
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-            for elem in elem:
-                self.indent(elem, level + 1)
-            if not elem.tail or not elem.tail.strip():
-                elem.tail = i
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
-
-    def convertMetadataToXML(self, filename, metadata):
-        # Shorthand for metadata
-        md = metadata
-        # Build a tree structure
-        root = ET.Element("ComicInfo")
-        root.attrib['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
-        root.attrib['xmlns:xsd'] = "http://www.w3.org/2001/XMLSchema"
-        # helper func
-
-        def assign(cix_entry, md_entry):
-            if md_entry is not None:
-                ET.SubElement(root, cix_entry).text = u"{0}".format(md_entry)
-
-        assign('Title', md.title)
-        assign('Series', md.series)
-        assign('Number', md.issue)
-        assign('Count', md.issueCount)
-        assign('Volume', md.volume)
-        assign('AlternateSeries', md.alternateSeries)
-        assign('AlternateNumber', md.alternateNumber)
-        assign('StoryArc', md.storyArc)
-        assign('SeriesGroup', md.seriesGroup)
-        assign('AlternateCount', md.alternateCount)
-        assign('Summary', md.comments)
-        assign('Notes', md.notes)
-        assign('Year', md.year)
-        assign('Month', md.month)
-        assign('Day', md.day)
-
-        # need to specially process the credits, since they are structured
-        # differently than CIX
-        credit_writer_list = list()
-        credit_penciller_list = list()
-        credit_inker_list = list()
-        credit_colorist_list = list()
-        credit_letterer_list = list()
-        credit_cover_list = list()
-        credit_editor_list = list()
-
-        # first, loop thru credits, and build a list for each role that CIX
-        # supports
-        for credit in metadata.credits:
-
-            if credit['role'].lower() in set(self.writer_synonyms):
-                credit_writer_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.penciller_synonyms):
-                credit_penciller_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.inker_synonyms):
-                credit_inker_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.colorist_synonyms):
-                credit_colorist_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.letterer_synonyms):
-                credit_letterer_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.cover_synonyms):
-                credit_cover_list.append(credit['person'].replace(",", ""))
-
-            if credit['role'].lower() in set(self.editor_synonyms):
-                credit_editor_list.append(credit['person'].replace(",", ""))
-
-        # second, convert each list to string, and add to XML struct
-        if len(credit_writer_list) > 0:
-            node = ET.SubElement(root, 'Writer')
-            node.text = listToString(credit_writer_list)
-
-        if len(credit_penciller_list) > 0:
-            node = ET.SubElement(root, 'Penciller')
-            node.text = listToString(credit_penciller_list)
-
-        if len(credit_inker_list) > 0:
-            node = ET.SubElement(root, 'Inker')
-            node.text = listToString(credit_inker_list)
-
-        if len(credit_colorist_list) > 0:
-            node = ET.SubElement(root, 'Colorist')
-            node.text = listToString(credit_colorist_list)
-
-        if len(credit_letterer_list) > 0:
-            node = ET.SubElement(root, 'Letterer')
-            node.text = listToString(credit_letterer_list)
-
-        if len(credit_cover_list) > 0:
-            node = ET.SubElement(root, 'CoverArtist')
-            node.text = listToString(credit_cover_list)
-
-        if len(credit_editor_list) > 0:
-            node = ET.SubElement(root, 'Editor')
-            node.text = listToString(credit_editor_list)
-
-        assign('Publisher', md.publisher)
-        assign('Imprint', md.imprint)
-        assign('Genre', md.genre)
-        assign('Web', md.webLink)
-        assign('PageCount', md.pageCount)
-        assign('LanguageISO', md.language)
-        assign('Format', md.format)
-        assign('AgeRating', md.maturityRating)
-        if md.blackAndWhite is not None and md.blackAndWhite:
-            ET.SubElement(root, 'BlackAndWhite').text = "Yes"
-        assign('Manga', md.manga)
-        assign('Characters', md.characters)
-        assign('Teams', md.teams)
-        assign('Locations', md.locations)
-        assign('ScanInformation', md.scanInfo)
-
-        #  loop and add the page entries under pages node
-        if len(md.pages) > 0:
-            pages_node = ET.SubElement(root, 'Pages')
-            for page_dict in md.pages:
-                page_node = ET.SubElement(pages_node, 'Page')
-                page_node.attrib = page_dict
-
-        # self pretty-print
-        self.indent(root)
-
-        # wrap it in an ElementTree instance, and save as XML
-        tree = ET.ElementTree(root)
-        return tree
 
     def convertXMLToMetadata(self, tree):
 
@@ -246,12 +100,12 @@ class ComicInfoXML(object):
         # Now extract the credit info
         for n in root:
             if (n.tag == 'Writer' or
-                    n.tag == 'Penciller' or
-                    n.tag == 'Inker' or
-                    n.tag == 'Colorist' or
-                    n.tag == 'Letterer' or
-                    n.tag == 'Editor'
-                    ):
+                n.tag == 'Penciller' or
+                n.tag == 'Inker' or
+                n.tag == 'Colorist' or
+                n.tag == 'Letterer' or
+                n.tag == 'Editor'
+                ):
                 if n.text is not None:
                     for name in n.text.split(','):
                         metadata.addCredit(name.strip(), n.tag)
@@ -271,14 +125,3 @@ class ComicInfoXML(object):
         metadata.isEmpty = False
 
         return metadata
-
-    def writeToExternalFile(self, filename, metadata):
-
-        tree = self.convertMetadataToXML(self, metadata)
-        # ET.dump(tree)
-        tree.write(filename, encoding='utf-8')
-
-    def readFromExternalFile(self, filename):
-
-        tree = ET.parse(filename)
-        return self.convertXMLToMetadata(tree)
