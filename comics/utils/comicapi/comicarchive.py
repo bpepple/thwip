@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from io import StringIO
 import os
 import sys
 import zipfile
@@ -24,13 +23,6 @@ from natsort import natsorted
 from .comicinfoxml import ComicInfoXML
 from .filenameparser import FileNameParser
 from .genericmetadata import GenericMetadata
-
-
-try:
-    from PIL import Image
-    pil_available = True
-except ImportError:
-    pil_available = False
 
 
 class MetaDataStyle:
@@ -119,10 +111,6 @@ class ComicArchive:
         for style in style_list:
             self.readMetadata(style)
 
-    def rename(self, path):
-        self.path = path
-        self.archiver.path = path
-
     def zipTest(self):
         return zipfile.is_zipfile(self.path)
 
@@ -175,60 +163,6 @@ class ComicArchive:
             return None
 
         return page_list[index]
-
-    def getScannerPageIndex(self):
-        scanner_page_index = None
-
-        # make a guess at the scanner page
-        name_list = self.getPageNameList()
-        count = self.getNumberOfPages()
-
-        # too few pages to really know
-        if count < 5:
-            return None
-
-        # count the length of every filename, and count occurences
-        length_buckets = dict()
-        for name in name_list:
-            fname = os.path.split(name)[1]
-            length = len(fname)
-            if length in length_buckets:
-                length_buckets[length] += 1
-            else:
-                length_buckets[length] = 1
-
-        # sort by most common
-        sorted_buckets = sorted(
-            length_buckets.iteritems(),
-            key=lambda k_v: (
-                k_v[1],
-                k_v[0]),
-            reverse=True)
-
-        # statistical mode occurence is first
-        mode_length = sorted_buckets[0][0]
-
-        # we are only going to consider the final image file:
-        final_name = os.path.split(name_list[count - 1])[1]
-
-        common_length_list = list()
-        for name in name_list:
-            if len(os.path.split(name)[1]) == mode_length:
-                common_length_list.append(os.path.split(name)[1])
-
-        prefix = os.path.commonprefix(common_length_list)
-
-        if mode_length <= 7 and prefix == "":
-            # probably all numbers
-            if len(final_name) > mode_length:
-                scanner_page_index = count - 1
-
-        # see if the last page doesn't start with the same prefix as most
-        # others
-        elif not final_name.startswith(prefix):
-            scanner_page_index = count - 1
-
-        return scanner_page_index
 
     def getPageNameList(self, sort_list=True):
         if self.page_list is None:
@@ -298,31 +232,6 @@ class ComicArchive:
             else:
                 self.has_cix = False
         return self.has_cix
-
-    def applyArchiveInfoToMetadata(self, md, calc_page_sizes=False):
-        md.pageCount = self.getNumberOfPages()
-
-        if calc_page_sizes:
-            for p in md.pages:
-                idx = int(p['Image'])
-                if pil_available:
-                    if 'ImageSize' not in p or 'ImageHeight' not in p or 'ImageWidth' not in p:
-                        data = self.getPage(idx)
-                        if data is not None:
-                            try:
-                                im = Image.open(StringIO.StringIO(data))
-                                w, h = im.size
-
-                                p['ImageSize'] = str(len(data))
-                                p['ImageHeight'] = str(h)
-                                p['ImageWidth'] = str(w)
-                            except IOError:
-                                p['ImageSize'] = str(len(data))
-
-                else:
-                    if 'ImageSize' not in p:
-                        data = self.getPage(idx)
-                        p['ImageSize'] = str(len(data))
 
     def metadataFromFilename(self, parse_scan_info=True):
         metadata = GenericMetadata()
