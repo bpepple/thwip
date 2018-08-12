@@ -26,6 +26,12 @@ CREATORS_FOLDERS = 'creators'
 ISSUES_FOLDER = 'issues'
 PUBLISHERS_FOLDER = 'publishers'
 
+CREATOR_IMG_WIDTH = 64
+CREATOR_IMG_HEIGHT = 64
+
+NORMAL_IMG_WIDTH = 640
+NORMAL_IMG_HEIGHT = 960
+
 
 def get_recursive_filelist(pathlist):
     # Get a recursive list of all files under all path items in the list.
@@ -304,8 +310,11 @@ class ComicImporter(object):
         data = self.getCVObjectData(issue_response['results'])
 
         issue = Issue.objects.get(cvid=issue_cvid)
-        if data['image'] != None:
-            issue.image = utils.resize_images(data['image'], ISSUES_FOLDER)
+        if data['image'] != '':
+            issue.image = utils.resize_images(data['image'],
+                                              ISSUES_FOLDER,
+                                              NORMAL_IMG_WIDTH,
+                                              NORMAL_IMG_HEIGHT)
             os.remove(data['image'])
         issue.desc = data['desc']
         issue.save()
@@ -387,16 +396,18 @@ class ComicImporter(object):
         # If the image name from Comic Vine is too large, don't save it since it will
         # cause a DB error. Using 132 as the value since that will take into account the
         # upload_to value from the longest model (Pubishers).
-        if (len(data['image']) < 132):
+        if (len(data['image']) < 132) or (data['image'] is not ''):
             db_obj.image = data['image']
         db_obj.save()
 
         return True
 
+    # Only the Creators are using this right now.
     def create_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
-        db_obj.image = utils.resize_images(db_obj.image, img_dir)
+        db_obj.image = utils.resize_images(db_obj.image, img_dir,
+                                           CREATOR_IMG_WIDTH, CREATOR_IMG_HEIGHT)
         db_obj.save()
         os.remove(old_image_path)
 
@@ -567,7 +578,9 @@ class ComicImporter(object):
                     publisher_obj.desc = p['desc']
                     if p['image'] is not '':
                         publisher_obj.image = utils.resize_images(p['image'],
-                                                                  PUBLISHERS_FOLDER)
+                                                                  PUBLISHERS_FOLDER,
+                                                                  NORMAL_IMG_WIDTH,
+                                                                  NORMAL_IMG_HEIGHT)
                         # Delete the original image
                         os.remove(p['image'])
                     publisher_obj.save()
