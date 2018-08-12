@@ -28,11 +28,12 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class CreditsSerializer(serializers.ModelSerializer):
     creator = serializers.ReadOnlyField(source='creator.name')
+    image = serializers.ImageField(source='creator.image')
     role = RoleSerializer('role', many=True)
 
     class Meta:
         model = Credits
-        fields = ('creator', 'role')
+        fields = ('creator', 'image', 'role')
 
 
 class IssueSerializer(serializers.ModelSerializer):
