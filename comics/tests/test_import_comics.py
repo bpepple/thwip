@@ -6,13 +6,25 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.test import APIClient
+from rest_framework_jwt import utils
+from rest_framework_jwt.compat import get_user_model
 
 from comics.models import (Settings, Issue, Publisher,
                            Creator, Role, Series)
 from comics.utils.comicimporter import ComicImporter
 
 
+User = get_user_model()
+
+
 class TestImportComics(TestCase):
+
+    def setUp(self):
+        self.csrf_client = APIClient(enforce_csrf_checks=True)
+        self.email = 'brian@test.com'
+        self.username = 'brian'
+        self.user = User.objects.create_user(self.username, self.email)
 
     @classmethod
     def setUpTestData(cls):
@@ -102,8 +114,13 @@ class TestImportComics(TestCase):
 
         role = Role.objects.get(id=1)
         issue = Issue.objects.get(cvid=8192)
-        resp = self.client.get(reverse('api:issue-get-page',
-                                       kwargs={'slug': issue.slug, 'page': 1}))
+
+        payload = utils.jwt_payload_handler(self.user)
+        token = utils.jwt_encode_handler(payload)
+        auth = 'JWT {0}'.format(token)
+        resp = self.csrf_client.get(reverse('api:issue-get-page',
+                                            kwargs={'slug': issue.slug, 'page': 1}),
+                                    HTTP_AUTHORIZATION=auth, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         # Check the Role Models str()
         self.assertEqual(role.__str__(), role.name)
