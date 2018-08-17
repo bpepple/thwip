@@ -17,6 +17,14 @@ mod_time = timezone.now()
 User = get_user_model()
 
 
+def get_auth(user):
+    payload = utils.jwt_payload_handler(user)
+    token = utils.jwt_encode_handler(payload)
+    auth = 'JWT {0}'.format(token)
+
+    return auth
+
+
 class GetAllSeriesTest(TestCase):
 
     def setUp(self):
@@ -44,20 +52,14 @@ class GetAllSeriesTest(TestCase):
                              series=batman_obj, image="image/issues/bat.jpg")
 
     def test_view_url_accessible_by_name(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         resp = self.csrf_client.get(reverse('api:series-list'),
-                                    HTTP_AUTHORIZATION=auth, format='json')
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_publisher_series_list(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         resp = self.csrf_client.get(reverse('api:publisher-series-list',
                                             kwargs={'slug': self.dc.slug}),
-                                    HTTP_AUTHORIZATION=auth, format='json')
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
@@ -93,22 +95,16 @@ class GetSingleSeriesTest(TestCase):
         self.assertEqual(reverse_url, absolute_url)
 
     def test_get_valid_single_series(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         resp = self.csrf_client.get(reverse('api:series-detail',
                                             kwargs={'slug': self.thor.slug}),
-                                    HTTP_AUTHORIZATION=auth, format='json')
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         series = Series.objects.get(slug=self.thor.slug)
         serializer = SeriesSerializer(series, context=self.serializer_context)
         self.assertEqual(resp.data, serializer.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_get_invalid_single_series(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:series-detail',
                                                 kwargs={'slug': 'airboy'}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
