@@ -12,6 +12,14 @@ from comics.serializers import PublisherSerializer
 User = get_user_model()
 
 
+def get_auth(user):
+    payload = utils.jwt_payload_handler(user)
+    token = utils.jwt_encode_handler(payload)
+    auth = 'JWT {0}'.format(token)
+
+    return auth
+
+
 class GetAllPublisherTest(TestCase):
 
     def setUp(self):
@@ -26,11 +34,8 @@ class GetAllPublisherTest(TestCase):
         Publisher.objects.create(name='Marvel', slug='marvel')
 
     def test_view_url_accessible_by_name(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         resp = self.csrf_client.get(reverse('api:publisher-list'),
-                                    HTTP_AUTHORIZATION=auth, format='json')
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
@@ -48,12 +53,9 @@ class GetSinglePublisherTest(TestCase):
         cls.marvel = Publisher.objects.create(name='Marvel', slug='marvel')
 
     def test_get_valid_single_publisher(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:publisher-detail',
                                                 kwargs={'slug': self.dc.slug}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         publisher = Publisher.objects.get(slug=self.dc.slug)
         serializer = PublisherSerializer(publisher)
         self.assertEqual(response.data, serializer.data)
@@ -66,10 +68,7 @@ class GetSinglePublisherTest(TestCase):
         self.assertEqual(reverse_url, absolute_url)
 
     def test_get_invalid_single_publisher(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:publisher-detail',
                                                 kwargs={'slug': 'dark-horse'}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
