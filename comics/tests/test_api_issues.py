@@ -15,6 +15,13 @@ mod_time = timezone.now()
 
 User = get_user_model()
 
+def get_auth(user):
+    payload = utils.jwt_payload_handler(user)
+    token = utils.jwt_encode_handler(payload)
+    auth = 'JWT {0}'.format(token)
+
+    return auth
+
 
 class GetAllIssueTest(APITestCase):
 
@@ -36,28 +43,21 @@ class GetAllIssueTest(APITestCase):
                              file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
 
     def test_view_url_accessible_by_name(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
-        resp = self.csrf_client.get(
-            reverse('api:issue-list'), HTTP_AUTHORIZATION=auth, format='json')
+        resp = self.csrf_client.get(reverse('api:issue-list'),
+                                    HTTP_AUTHORIZATION=get_auth(self.user),
+                                    format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_recent_issue_list(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
-        resp = self.csrf_client.get(
-            reverse('api:issue-recent'), HTTP_AUTHORIZATION=auth, format='json')
+        resp = self.csrf_client.get(reverse('api:issue-recent'),
+                                    HTTP_AUTHORIZATION=get_auth(self.user),
+                                    format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_series_issue_list(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         resp = self.csrf_client.get(reverse('api:series-issue-list',
                                             kwargs={'slug': self.superman.slug}),
-                                    HTTP_AUTHORIZATION=auth, format='json')
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
@@ -86,12 +86,9 @@ class GetSingleIssueTest(APITestCase):
                                             file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=series_obj)
 
     def test_get_valid_single_issue(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:issue-detail',
                                                 kwargs={'slug': self.superman.slug}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         issue = Issue.objects.get(slug=self.superman.slug)
         serializer = IssueSerializer(issue, context=self.serializer_context)
         self.assertEqual(response.data, serializer.data)
@@ -104,12 +101,9 @@ class GetSingleIssueTest(APITestCase):
         self.assertEqual(reverse_url, absolute_url)
 
     def test_issue_reader(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:issue-reader',
                                                 kwargs={'slug': self.superman.slug}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         issue = Issue.objects.get(slug=self.superman.slug)
         serializer = ReaderSerializer(issue, context=self.serializer_context)
         self.assertEqual(response.data, serializer.data)
@@ -118,12 +112,9 @@ class GetSingleIssueTest(APITestCase):
     def test_issue_update_values(self):
         # Let's change the leaf to 10, and change the read status to Read (2).
         change_values = {'leaf': 10, 'status': 2}
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.put(reverse('api:issue-detail',
                                                 kwargs={'slug': self.superman.slug}),
-                                        change_values, HTTP_AUTHORIZATION=auth,
+                                        change_values, HTTP_AUTHORIZATION=get_auth(self.user),
                                         format='json')
         issue = Issue.objects.get(slug=self.superman.slug)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -131,10 +122,7 @@ class GetSingleIssueTest(APITestCase):
         self.assertEqual(2, issue.status)
 
     def test_get_invalid_single_issue(self):
-        payload = utils.jwt_payload_handler(self.user)
-        token = utils.jwt_encode_handler(payload)
-        auth = 'JWT {0}'.format(token)
         response = self.csrf_client.get(reverse('api:issue-detail',
                                                 kwargs={'slug': 'airboy-001'}),
-                                        HTTP_AUTHORIZATION=auth, format='json')
+                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
