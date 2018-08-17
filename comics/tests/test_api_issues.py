@@ -15,6 +15,7 @@ mod_time = timezone.now()
 
 User = get_user_model()
 
+
 def get_auth(user):
     payload = utils.jwt_payload_handler(user)
     token = utils.jwt_encode_handler(payload)
@@ -114,7 +115,8 @@ class GetSingleIssueTest(APITestCase):
         change_values = {'leaf': 10, 'status': 2}
         response = self.csrf_client.put(reverse('api:issue-detail',
                                                 kwargs={'slug': self.superman.slug}),
-                                        change_values, HTTP_AUTHORIZATION=get_auth(self.user),
+                                        change_values,
+                                        HTTP_AUTHORIZATION=get_auth(self.user),
                                         format='json')
         issue = Issue.objects.get(slug=self.superman.slug)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
