@@ -1,6 +1,5 @@
 from django.http import Http404
-from rest_framework import mixins
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -131,6 +130,8 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         .prefetch_related('issue_set')
     )
     serializer_class = SeriesSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
     lookup_field = 'slug'
 
     @action(detail=True)
