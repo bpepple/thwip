@@ -21,6 +21,8 @@ from . import utils
 from .comicapi.comicarchive import MetaDataStyle, ComicArchive
 from .comicapi.issuestring import IssueString
 
+import time
+
 
 CREATORS_FOLDERS = 'creators'
 ISSUES_FOLDER = 'issues'
@@ -630,6 +632,9 @@ class ComicImporter(object):
     def commitMetadataList(self, md_list):
         for md in md_list:
             self.addComicFromMetadata(md)
+            # Since we are only hitting 2 ComicVine resources let's
+            # limit the number of requests to approx. < 600 an hour.
+            time.sleep(6)
 
     def import_comic_files(self):
         filelist = get_recursive_filelist(self.directory_path)
