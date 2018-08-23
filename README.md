@@ -19,7 +19,7 @@ If you want to hack on Thwip, here's some installation instructions: [Thwip Wiki
     2. It's a non-free software file format.
     
 3. Do you support pdf?
-    * Don't have any plan to since you can't write tags to them, and I have no plans to include Comic Vine issue searching to the proejct.
+    * Don't have any plan to since you can't write tags to them, and I have no plans to include Comic Vine issue searching to the project.
 
 4. Do you have a Docker installation?
     * Nope, but if you want to create one I'd be more than happy to look at a pull request. :smiley:
