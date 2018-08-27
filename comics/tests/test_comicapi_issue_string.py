@@ -24,3 +24,7 @@ class TestIssueString(SimpleTestCase):
     def test_issue_string_monsters_unleashed(self):
         val = IssueString('1.MU').asString(3)
         self.assertEqual(val, '001.MU')
+
+    def test_issue_string_minus_one(self):
+        val = IssueString('-1').asString(3)
+        self.assertEqual(val, '-001')
