@@ -23,7 +23,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ('name',)
+        fields = ('id', 'name')
 
 
 class CreditsSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class CreditsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Credits
-        fields = ('creator', 'image', 'role')
+        fields = ('id', 'creator', 'image', 'role')
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -46,10 +46,10 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
+        fields = ('id', '__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
                   'leaf', 'page_count', 'percent_read', 'status', 'desc', 'image',
                   'credits')
-        read_only_fields = ('__str__', 'slug', 'cvurl', 'name', 'number', 'date',
+        read_only_fields = ('id', '__str__', 'slug', 'cvurl', 'name', 'number', 'date',
                             'page_count', 'desc', 'image')
         lookup_field = 'slug'
 
