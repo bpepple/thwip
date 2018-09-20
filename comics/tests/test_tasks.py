@@ -4,8 +4,9 @@ import os
 from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.utils.text import slugify
 
-from comics.models import Issue, Settings
+from comics.models import Issue, Settings, Publisher, Creator
 from comics.tasks import import_comic_files_task
 
 
@@ -35,3 +36,17 @@ class TestTasks(TestCase):
         self.assertEqual(issue.percent_read, 12)
         self.assertEqual(issue.date, datetime.date(cover_date))
         self.assertTrue(issue.image)
+
+        # When the db is torn down after the test the images don't get
+        # removed so let's do this clunky bit of code to handle it.
+        people = ["Joe Gill", "Steve Ditko", "Jon D'Agostino"]
+        slugified_names = []
+        for creator in people:
+            slugified_names.append(slugify(creator))
+
+        for credit in slugified_names:
+            c = Creator.objects.get(slug=credit)
+            c.delete()
+
+        publisher = Publisher.objects.get(slug='charlton')
+        publisher.delete()
