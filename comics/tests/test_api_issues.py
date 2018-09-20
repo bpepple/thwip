@@ -128,8 +128,3 @@ class GetSingleIssueTest(APITestCase):
                                                 kwargs={'slug': 'airboy-001'}),
                                         HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_import_comics(self):
-        response = self.csrf_client.get(reverse('api:issue-import-comics'),
-                                        HTTP_AUTHORIZATION=get_auth(self.user), format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
