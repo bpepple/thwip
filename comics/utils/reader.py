@@ -33,6 +33,6 @@ class ImageAPIHandler(object):
         image_data = ca.getPage(int(page_num))
         image_type = self.getContentType(image_data)
         base64_data = base64.b64encode(image_data).decode('ascii')
-        uri = 'data:%s;base64,%s' % (image_type, base64_data)
+        uri = f'data:{image_type};base64,{base64_data}'
 
         return uri
