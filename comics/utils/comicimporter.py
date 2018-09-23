@@ -92,10 +92,10 @@ class ComicImporter(object):
             return False
 
         if not (os.path.exists(comic.file)):
-            self.logger.info("Removing missing {0}".format(comic.file))
+            self.logger.info(f"Removing missing {comic.file}")
             remove = True
         elif not inFolderlist(comic.file, pathlist):
-            self.logger.info("Removing unwanted {0}".format(comic.file))
+            self.logger.info(f"Removing unwanted {comic.file}")
             remove = True
         else:
             current_timezone = timezone.get_current_timezone()
@@ -104,7 +104,7 @@ class ComicImporter(object):
             prev = comic.mod_ts
 
             if curr != prev:
-                self.logger.info("Removing modified {0}".format(comic.file))
+                self.logger.info(f"Removing modified {comic.file}")
                 remove = True
 
         if remove:
@@ -113,7 +113,7 @@ class ComicImporter(object):
             # If this is the only issue for a series, delete the series.
             if s_count == 1:
                 series.delete()
-                self.logger.info('Deleting series: %s' % series)
+                self.logger.info(f'Deleting series: {series}')
             else:
                 comic.delete()
 
@@ -171,7 +171,7 @@ class ComicImporter(object):
                             image_url, 'media/images/' + image_filename)[0])
                     except OSError as e:
                         self.logger.error(
-                            'getCVObjectData retrieve image - %s' % e)
+                            f'getCVObjectData retrieve image - {e}')
                         image = None
 
         # Create data object
@@ -198,7 +198,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('refreshCreatorData - %s' % e)
+            self.logger.error(f'refreshCreatorData - {e}')
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -210,7 +210,7 @@ class ComicImporter(object):
         creator = Creator.objects.get(cvid=cvid)
         creator.desc = data['desc']
         creator.save()
-        self.logger.info('Refresh metadata for: %s' % creator)
+        self.logger.info(f'Refresh metadata for: {creator}')
 
         return True
 
@@ -225,7 +225,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('refreshIssueData - %s' % e)
+            self.logger.error(f'refreshIssueData - {e}')
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -234,7 +234,7 @@ class ComicImporter(object):
         issue.desc = data['desc']
         issue.name = data['name']
         issue.save()
-        self.logger.info('Refreshed metadata for: %s' % issue)
+        self.logger.info(f'Refreshed metadata for: {issue}')
 
         return True
 
@@ -249,7 +249,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('refreshSeriesData - %s' % e)
+            self.logger.error(f'refreshSeriesData - {e}')
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -258,7 +258,7 @@ class ComicImporter(object):
         series.desc = data['desc']
         series.year = data['year']
         series.save()
-        self.logger.info('Refreshed metadata for: %s' % series)
+        self.logger.info(f'Refreshed metadata for: {series}')
 
         return True
 
@@ -274,7 +274,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('refreshPublisherData - %s' % e)
+            self.logger.error(f'refreshPublisherData - {e}')
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -286,7 +286,7 @@ class ComicImporter(object):
         publisher = Publisher.objects.get(cvid=cvid)
         publisher.desc = data['desc']
         publisher.save()
-        self.logger.info('Refresh metadata for: %s' % publisher)
+        self.logger.info(f'Refresh metadata for: {publisher}')
 
         return True
 
@@ -302,7 +302,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('getIssue - %s' % e)
+            self.logger.error(f'getIssue - {e}')
             response = None
 
         return response
@@ -334,7 +334,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('getSeries - s' % e)
+            self.logger.error(f'getSeries - {e}')
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -352,7 +352,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('getPublisher(volume) - %s' % e)
+            self.logger.error(f'getPublisher(volume) - {e}')
             return None
 
         params = self.base_params
@@ -367,7 +367,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('getPublisher(publisher) - %s', e)
+            self.logger.error(f'getPublisher(publisher) - {e}')
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -385,7 +385,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
-            self.logger.error('getDetailInfo - %s' % e)
+            self.logger.error(f'getDetailInfo - {e}')
             return False
 
         data = self.getCVObjectData(response['results'])
@@ -439,8 +439,7 @@ class ComicImporter(object):
         # TODO: Need to fix the default image path
         ca = ComicArchive(path, default_image_path=None)
         if ca.seemsToBeAComicArchive():
-            self.logger.info(
-                "Reading in {0} {1}".format(self.read_count, path))
+            self.logger.info(f"Reading in {self.read_count} {path}")
             self.read_count += 1
             if ca.hasMetadata(MetaDataStyle.CIX):
                 style = MetaDataStyle.CIX
@@ -468,7 +467,7 @@ class ComicImporter(object):
             if cvID is None:
                 issue_name = md.series + ' #' + md.number
                 self.logger.info(
-                    'No Comic Vine ID for: %s... skipping.' % issue_name)
+                    f'No Comic Vine ID for: {issue_name}... skipping.')
                 return False
 
             # let's get the issue info from CV.
@@ -498,7 +497,7 @@ class ComicImporter(object):
                         for x in itertools.count(1):
                             if not Series.objects.filter(slug=new_slug).exists():
                                 break
-                            new_slug = '%s-%d' % (orig, x)
+                            new_slug = f'{orig}-{x}'
 
                         sort_name = utils.create_series_sortname(data['name'])
                         series_obj.slug = new_slug
@@ -509,7 +508,7 @@ class ComicImporter(object):
                         series_obj.year = data['year']
                         series_obj.desc = data['desc']
                         series_obj.save()
-                        self.logger.info('Added series: %s' % series_obj)
+                        self.logger.info(f'Added series: {series_obj}')
 
             # Ugh, deal wih the timezone
             current_timezone = timezone.get_current_timezone()
@@ -542,7 +541,7 @@ class ComicImporter(object):
             for x in itertools.count(1):
                 if not Issue.objects.filter(slug=new_slug).exists():
                     break
-                new_slug = '%s-%d' % (orig, x)
+                new_slug = f'{orig}-{x}'
 
             try:
                 # Create the issue
@@ -558,17 +557,17 @@ class ComicImporter(object):
                     mod_ts=tz,
                     series=series_obj,)
             except IntegrityError as e:
-                self.logger.error('Attempting to create issue in db - %s' % e)
-                self.logger.info('Skipping: %s' % md.path)
+                self.logger.error(f'Attempting to create issue in db - {e}')
+                self.logger.info(f'Skipping: {md.path}')
                 return
 
             # Set the issue image & short description.
             res = self.setIssueDetail(cvID, issue_response)
             if res:
-                self.logger.info("Added: %s" % issue_obj)
+                self.logger.info(f"Added: {issue_obj}")
             else:
                 self.logger.warning(
-                    'No detail information was saved for %s' % issue_obj)
+                    f'No detail information was saved for {issue_obj}')
 
             # Adding new publisher we need to grab
             # some additional data from Comic Vine.
@@ -586,7 +585,7 @@ class ComicImporter(object):
                         # Delete the original image
                         os.remove(p['image'])
                     publisher_obj.save()
-                    self.logger.info('Added publisher: %s' % publisher_obj)
+                    self.logger.info(f'Added publisher: {publisher_obj}')
 
             # Add the creators
             for p in issue_response['results']['person_credits']:
@@ -608,7 +607,7 @@ class ComicImporter(object):
                     for x in itertools.count(1):
                         if not Creator.objects.filter(slug=new_slug).exists():
                             break
-                        new_slug = '%s-%d' % (orig, x)
+                        new_slug = f'{orig}-{x}'
 
                     creator_obj.name = p['name']
                     creator_obj.slug = new_slug
@@ -622,10 +621,10 @@ class ComicImporter(object):
                         self.create_images(creator_obj, CREATORS_FOLDERS)
 
                     if res:
-                        self.logger.info('Added creator: %s' % creator_obj)
+                        self.logger.info(f'Added creator: {creator_obj}')
                     else:
-                        self.logger.info('No Creator detail info available for: %s'
-                                         % creator_obj)
+                        self.logger.info(
+                            f'No Creator detail info available for: {creator_obj}')
 
             return True
 
