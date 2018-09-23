@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from comics.tasks import refresh_issue_task
+
 from .models import Creator, Credits, Issue, Publisher, Series, Settings
 
 
@@ -52,7 +54,7 @@ class IssueAdmin(admin.ModelAdmin):
     list_filter = ('import_date', 'date', 'status')
     list_select_related = ('series',)
     date_hierarchy = 'date'
-    actions = ['mark_as_read', 'mark_as_unread']
+    actions = ['mark_as_read', 'mark_as_unread', 'refresh_issue_metadata']
     fieldsets = (
         (None, {
             'fields': ('series', 'number', 'cvid', 'cvurl', 'name',
@@ -80,6 +82,18 @@ class IssueAdmin(admin.ModelAdmin):
         self.message_user(
             request, "%s successfully marked as unread." % message_bit)
     mark_as_unread.short_description = 'Mark selected issues as unread'
+
+    def refresh_issue_metadata(self, request, queryset):
+        rows_updated = 0
+        for issue in queryset:
+            success = refresh_issue_task(issue.cvid)
+            if success:
+                rows_updated += 1
+
+        message_bit = create_msg(rows_updated)
+        self.message_user(
+            request, "%s metadata successfuly refreshed." % message_bit)
+    refresh_issue_metadata.short_description = 'Refresh selected issues metadata'
 
 
 @admin.register(Publisher)
