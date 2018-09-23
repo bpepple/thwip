@@ -13,7 +13,7 @@ def create_msg(rows_updated):
     if rows_updated == 1:
         message_bit = "1 item was"
     else:
-        message_bit = "%s items were" % rows_updated
+        message_bit = f"{rows_updated} items were"
 
     return message_bit
 
@@ -73,14 +73,14 @@ class IssueAdmin(admin.ModelAdmin):
         rows_updated = queryset.update(status=READ)
         message_bit = create_msg(rows_updated)
         self.message_user(
-            request, "%s successfully marked as read." % message_bit)
+            request, f"{message_bit} successfully marked as read.")
     mark_as_read.short_description = 'Mark selected issues as read'
 
     def mark_as_unread(self, request, queryset):
         rows_updated = queryset.update(status=UNREAD)
         message_bit = create_msg(rows_updated)
         self.message_user(
-            request, "%s successfully marked as unread." % message_bit)
+            request, f"{message_bit} successfully marked as unread.")
     mark_as_unread.short_description = 'Mark selected issues as unread'
 
     def refresh_issue_metadata(self, request, queryset):
@@ -92,7 +92,7 @@ class IssueAdmin(admin.ModelAdmin):
 
         message_bit = create_msg(rows_updated)
         self.message_user(
-            request, "%s metadata successfuly refreshed." % message_bit)
+            request, f"{message_bit} metadata successfuly refreshed.")
     refresh_issue_metadata.short_description = 'Refresh selected issues metadata'
 
 
@@ -145,7 +145,7 @@ class SeriesAdmin(admin.ModelAdmin):
             issues_count += issues_updated
         message_bit = create_msg(issues_count)
         self.message_user(
-            request, "%s successfully marked as read." % message_bit)
+            request, f"{message_bit} successfully marked as read.")
     mark_as_read.short_description = 'Mark selected Series as read'
 
     def mark_as_unread(self, request, queryset):
@@ -156,7 +156,7 @@ class SeriesAdmin(admin.ModelAdmin):
             issues_count += issues_updated
         message_bit = create_msg(issues_count)
         self.message_user(
-            request, "%s successfully marked as unread." % message_bit)
+            request, f"{message_bit} successfully marked as unread.")
     mark_as_unread.short_description = 'Mark selected Series as unread'
 
 
