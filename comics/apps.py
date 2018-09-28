@@ -8,6 +8,10 @@ class ComicsConfig(AppConfig):
     name = 'comics'
 
     def ready(self):
+        arc = self.get_model('Arc')
+        pre_delete.connect(pre_delete_image, sender=arc,
+                           dispatch_uid='pre_delete_arc')
+
         creator = self.get_model('Creator')
         pre_delete.connect(pre_delete_image, sender=creator,
                            dispatch_uid='pre_delete_creator')
