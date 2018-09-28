@@ -38,6 +38,25 @@ class Settings(SingletonModel):
         verbose_name_plural = "Settings"
 
 
+class Arc(models.Model):
+    cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
+    cvurl = models.URLField('Comic Vine URL', max_length=200)
+    name = models.CharField('Arc Name', max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    desc = models.TextField('Description', max_length=500, blank=True)
+    image = models.ImageField(upload_to='images/arcs/',
+                              max_length=150, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('api:arc-detail', args=[self.slug])
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
 class Creator(models.Model):
     cvid = models.PositiveIntegerField('Comic Vine ID', unique=True)
     cvurl = models.URLField('Comic Vine URL', max_length=200)
@@ -131,6 +150,7 @@ class Issue(models.Model):
     number = models.CharField('Issue Number', max_length=25)
     date = models.DateField('Cover Date', blank=True)
     desc = models.TextField('Description', max_length=500, blank=True)
+    arcs = models.ManyToManyField(Arc, blank=True)
     creators = models.ManyToManyField(Creator, through='Credits', blank=True)
     file = models.CharField('File Path', max_length=300)
     image = models.ImageField(
