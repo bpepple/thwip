@@ -14,8 +14,8 @@ from django.utils.text import slugify
 import requests
 import requests_cache
 
-from comics.models import (Creator, Issue, Publisher, Role,
-                           Credits, Series, Settings)
+from comics.models import (Arc, Creator, Issue, Publisher,
+                           Role, Credits, Series, Settings)
 
 from . import utils
 from .comicapi.comicarchive import MetaDataStyle, ComicArchive
@@ -23,7 +23,7 @@ from .comicapi.issuestring import IssueString
 
 import time
 
-
+ARCS_FOLDER = 'arcs'
 CREATORS_FOLDERS = 'creators'
 ISSUES_FOLDER = 'issues'
 PUBLISHERS_FOLDER = 'publishers'
@@ -49,6 +49,7 @@ class CVTypeID:
     Issue = '4000'
     Person = '4040'
     Publisher = '4010'
+    StoryArc = '4045'
     Volume = '4050'
 
 
@@ -74,11 +75,12 @@ class ComicImporter(object):
                             'api_key': self.api_key}
         self.headers = {'user-agent': 'thwip'}
         # API field strings
+        self.arc_fields = 'deck,description,id,image,name,site_detail_url'
         self.creator_fields = 'deck,description,id,image,name,site_detail_url'
         self.publisher_fields = 'deck,description,id,image,name,site_detail_url'
         self.series_fields = 'api_detail_url,deck,description,id,name,publisher,site_detail_url,start_year'
-        self.issue_fields = 'api_detail_url,cover_date,deck,description,id,image,issue_number,name,person_credits,site_detail_url,volume'
-        self.refresh_issue_fields = 'api_detail_url,cover_date,deck,description,id,issue_number,name,site_detail_url,volume'
+        self.issue_fields = 'api_detail_url,cover_date,deck,description,id,image,issue_number,name,person_credits,site_detail_url,story_arc_credits,volume'
+        self.refresh_issue_fields = 'api_detail_url,cover_date,deck,description,id,issue_number,name,site_detail_url,story_arc_credits,volume'
         # Initial Comic Book info to search
         self.style = MetaDataStyle.CIX
 
@@ -230,6 +232,8 @@ class ComicImporter(object):
 
         data = self.getCVObjectData(resp['results'])
 
+        # TODO: Check if storyarc exists and if not add it.
+
         issue = Issue.objects.get(cvid=cvid)
         issue.desc = data['desc']
         issue.name = data['name']
@@ -287,6 +291,34 @@ class ComicImporter(object):
         publisher.desc = data['desc']
         publisher.save()
         self.logger.info(f'Refresh metadata for: {publisher}')
+
+        return True
+
+    def refreshArcData(self, cvid):
+        issue_params = self.base_params
+        issue_params['field_list'] = self.arc_fields
+
+        try:
+            resp = requests.get(
+                self.baseurl + '/story_arc/' +
+                CVTypeID.StoryArc + '-' + str(cvid),
+                params=issue_params,
+                headers=self.headers,
+            ).json()
+        except requests.exceptions.RequestException as e:
+            self.logger.error('%s' % e)
+            return False
+
+        data = self.getCVObjectData(resp['results'])
+
+        # Currently I'm not refreshing the image until the
+        # cropping code is refactored, so let's remove the image.
+        os.remove(data['image'])
+
+        arc = Arc.objects.get(cvid=cvid)
+        arc.desc = data['desc']
+        arc.save()
+        self.logger.info(f'Refreshed metadata for: {arc}')
 
         return True
 
@@ -403,6 +435,14 @@ class ComicImporter(object):
         db_obj.save()
 
         return True
+
+    def create_arc_images(self, db_obj, img_dir):
+        base_name = os.path.basename(db_obj.image.name)
+        old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
+        db_obj.image = utils.resize_images(db_obj.image, img_dir,
+                                           NORMAL_IMG_WIDTH, NORMAL_IMG_HEIGHT)
+        db_obj.save()
+        os.remove(old_image_path)
 
     # Only the Creators are using this right now.
     def create_images(self, db_obj, img_dir):
@@ -586,6 +626,36 @@ class ComicImporter(object):
                         os.remove(p['image'])
                     publisher_obj.save()
                     self.logger.info(f'Added publisher: {publisher_obj}')
+
+            # Add the storyarc.
+            for story_arc in issue_response['results']['story_arc_credits']:
+                story_obj, s_create = Arc.objects.get_or_create(
+                    cvid=story_arc['id'],)
+                issue_obj.arcs.add(story_obj)
+
+                if s_create:
+                    new_slug = orig = slugify(story_arc['name'])
+                    for x in itertools.count(1):
+                        if not Arc.objects.filter(slug=new_slug).exists():
+                            break
+                        new_slug = f'{orig}-{x}'
+
+                    story_obj.name = story_arc['name']
+                    story_obj.slug = new_slug
+                    story_obj.save()
+
+                    res = self.getDetailInfo(story_obj,
+                                             self.arc_fields,
+                                             story_arc['api_detail_url'])
+
+                    if story_obj.image:
+                        self.create_arc_images(story_obj, ARCS_FOLDER)
+
+                    if res:
+                        self.logger.info(f'Added storyarc: {story_obj}')
+                    else:
+                        self.logger.info(
+                            f'Not Story Arc detail info available for: {story_obj}')
 
             # Add the creators
             for p in issue_response['results']['person_credits']:
