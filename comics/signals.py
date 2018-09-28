@@ -5,7 +5,7 @@ def pre_delete_image(sender, instance, **kwargs):
 
 
 def pre_delete_issue(sender, instance, **kwargs):
-    if (instance.cover):
+    if (instance.image):
         instance.image.delete(False)
 
     # Delete related arc if this is the only
