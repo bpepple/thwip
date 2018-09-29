@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory, APITestCase, APIClient
 from rest_framework_jwt import utils
 from rest_framework_jwt.compat import get_user_model
 
-from comics.models import Issue, Publisher, Series
+from comics.models import Arc, Issue, Publisher, Series
 from comics.serializers import IssueSerializer, ReaderSerializer
 
 
@@ -36,12 +36,17 @@ class GetAllIssueTest(APITestCase):
     def setUpTestData(cls):
         publisher_obj = Publisher.objects.create(
             name='DC Comics', slug='dc-comics')
+        cls.blackest = Arc.objects.create(
+            cvid=1001, name='Blackest Night', slug='blackest-night')
         cls.superman = Series.objects.create(cvid='1234', cvurl='http://1.com', name='Superman',
                                              slug='superman', publisher=publisher_obj)
-        Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1', page_count='21',
-                             file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
-        Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='batman-1',
-                             file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
+        issue1_obj = Issue.objects.create(cvid='1234', cvurl='http://1.com', slug='superman-1', page_count='21',
+                                          file='/home/a.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
+        issue2_obj = Issue.objects.create(cvid='4321', cvurl='http://2.com', slug='batman-1',
+                                          file='/home/b.cbz', mod_ts=mod_time, date=issue_date, number='1', series=cls.superman)
+
+        issue1_obj.arcs.set([cls.blackest])
+        issue2_obj.arcs.set([cls.blackest])
 
     def test_view_url_accessible_by_name(self):
         resp = self.csrf_client.get(reverse('api:issue-list'),
@@ -58,6 +63,12 @@ class GetAllIssueTest(APITestCase):
     def test_series_issue_list(self):
         resp = self.csrf_client.get(reverse('api:series-issue-list',
                                             kwargs={'slug': self.superman.slug}),
+                                    HTTP_AUTHORIZATION=get_auth(self.user), format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    def test_arc_issue_list(self):
+        resp = self.csrf_client.get(reverse('api:arc-issue-list',
+                                            kwargs={'slug': self.blackest.slug}),
                                     HTTP_AUTHORIZATION=get_auth(self.user), format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 

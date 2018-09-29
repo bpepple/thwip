@@ -22,6 +22,30 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ArcSerializer
     lookup_field = 'slug'
 
+    @action(detail=True)
+    def issue_list(self, request, slug=None):
+        """
+        Returns a list of issues for a story arc.
+        """
+        arc = self.get_object()
+        # Ordering the query set by date and then series name
+        # since the Comic Vine api doesn't appear to provide
+        # the story arc reading order.
+        queryset = (
+            Issue.objects
+            .filter(arcs__slug=arc.slug)
+            .select_related('series')
+            .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role', 'arcs')
+            .order_by('date', 'series')
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = IssueSerializer(
+                page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+        else:
+            raise Http404()
+
 
 class IssueViewSet(mixins.UpdateModelMixin,
                    mixins.ListModelMixin,
