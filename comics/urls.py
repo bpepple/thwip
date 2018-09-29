@@ -4,10 +4,12 @@ from django.urls import path, include
 from rest_framework import routers
 from rest_framework_jwt.views import obtain_jwt_token
 
-from comics.views import (IssueViewSet, PublisherViewSet, SeriesViewSet)
+from comics.views import (ArcViewSet, IssueViewSet,
+                          PublisherViewSet, SeriesViewSet)
 
 
 router = routers.DefaultRouter()
+router.register('arc', ArcViewSet)
 router.register('issue', IssueViewSet)
 router.register('publisher', PublisherViewSet)
 router.register('series', SeriesViewSet)

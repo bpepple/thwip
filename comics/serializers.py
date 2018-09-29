@@ -4,6 +4,14 @@ from comics.models import (Arc, Credits, Issue, Publisher, Role, Series)
 from comics.utils.reader import ImageAPIHandler
 
 
+class ArcSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Arc
+        fields = ('__all__')
+        lookup_field = 'slug'
+
+
 class ComicPageSerializer(serializers.ModelSerializer):
     page = serializers.SerializerMethodField(read_only=True)
 
@@ -36,7 +44,7 @@ class CreditsSerializer(serializers.ModelSerializer):
         fields = ('id', 'creator', 'image', 'role')
 
 
-class ArcSerializer(serializers.ModelSerializer):
+class IssueArcSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Arc
@@ -48,7 +56,7 @@ class IssueSerializer(serializers.ModelSerializer):
                                           slug_field='slug')
     credits = CreditsSerializer(source='credits_set', many=True,
                                 read_only=True)
-    arcs = ArcSerializer(many=True, read_only=True)
+    arcs = IssueArcSerializer(many=True, read_only=True)
     percent_read = serializers.ReadOnlyField
     leaf = serializers.IntegerField()
 

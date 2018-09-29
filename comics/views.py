@@ -3,11 +3,24 @@ from rest_framework import mixins, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from comics.models import (Issue, Publisher, Series)
-from comics.serializers import (ComicPageSerializer, IssueSerializer,
-                                PublisherSerializer, ReaderSerializer,
-                                SeriesSerializer)
+from comics.models import (Arc, Issue, Publisher, Series)
+from comics.serializers import (ArcSerializer, ComicPageSerializer,
+                                IssueSerializer, PublisherSerializer,
+                                ReaderSerializer, SeriesSerializer)
 from comics.tasks import import_comic_files_task
+
+
+class ArcViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    Returns a list of all the story arcs.
+
+    retrieve:
+    Returns the information of an individual story arc.
+    """
+    queryset = Arc.objects.all()
+    serializer_class = ArcSerializer
+    lookup_field = 'slug'
 
 
 class IssueViewSet(mixins.UpdateModelMixin,
