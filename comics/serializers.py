@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from comics.models import (Credits, Issue, Publisher, Role, Series)
+from comics.models import (Arc, Credits, Issue, Publisher, Role, Series)
 from comics.utils.reader import ImageAPIHandler
 
 
@@ -36,18 +36,26 @@ class CreditsSerializer(serializers.ModelSerializer):
         fields = ('id', 'creator', 'image', 'role')
 
 
+class ArcSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Arc
+        fields = ('id', 'name')
+
+
 class IssueSerializer(serializers.ModelSerializer):
     series = serializers.SlugRelatedField(many=False, read_only=True,
                                           slug_field='slug')
     credits = CreditsSerializer(source='credits_set', many=True,
                                 read_only=True)
+    arcs = ArcSerializer(many=True, read_only=True)
     percent_read = serializers.ReadOnlyField
     leaf = serializers.IntegerField()
 
     class Meta:
         model = Issue
         fields = ('id', '__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
-                  'leaf', 'page_count', 'percent_read', 'status', 'desc', 'image',
+                  'leaf', 'page_count', 'percent_read', 'status', 'desc', 'image', 'arcs',
                   'credits')
         read_only_fields = ('id', '__str__', 'slug', 'cvurl', 'name', 'number', 'date',
                             'page_count', 'desc', 'image')
