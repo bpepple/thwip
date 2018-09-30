@@ -5,10 +5,13 @@ from comics.utils.reader import ImageAPIHandler
 
 
 class ArcSerializer(serializers.ModelSerializer):
+    issue_count = serializers.ReadOnlyField
+    percent_read = serializers.ReadOnlyField
 
     class Meta:
         model = Arc
-        fields = ('__all__')
+        fields = ('id', 'name', 'slug', 'image',
+                  'issue_count', 'percent_read', 'desc')
         lookup_field = 'slug'
 
 

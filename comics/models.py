@@ -53,6 +53,24 @@ class Arc(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def issue_count(self):
+        return self.issue_set.all().count()
+
+    @cached_property
+    def read_issue_count(self):
+        if hasattr(self, '_prefetched_objects_cache'):
+            return len([x for x in self.issue_set.all() if x.status is 2])
+        return self.issue_set.filter(status=2).count()
+
+    @property
+    def percent_read(self):
+        try:
+            percent = round((self.read_issue_count / self.issue_count) * 100)
+        except ZeroDivisionError:
+            percent = 0
+        return percent
+
     class Meta:
         ordering = ['name']
 

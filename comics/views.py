@@ -18,7 +18,10 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
     retrieve:
     Returns the information of an individual story arc.
     """
-    queryset = Arc.objects.all()
+    queryset = (
+        Arc.objects
+        .prefetch_related('issue_set')
+    )
     serializer_class = ArcSerializer
     lookup_field = 'slug'
 
