@@ -146,7 +146,11 @@ class Series(models.Model):
 
     @property
     def percent_read(self):
-        return round((self.read_issue_count / self.issue_count) * 100)
+        try:
+            percent = round((self.read_issue_count / self.issue_count) * 100)
+        except ZeroDivisionError:
+            percent = 0
+        return percent
 
     class Meta:
         verbose_name_plural = "Series"
@@ -194,7 +198,12 @@ class Issue(models.Model):
             read = self.leaf + 1
         else:
             read = self.leaf
-        return round((read / self.page_count) * 100)
+
+        try:
+            percent = round((read / self.page_count) * 100)
+        except ZeroDivisionError:
+            percent = 0
+        return percent
 
     def get_absolute_url(self):
         return reverse('api:issue-detail', args=[self.slug])
