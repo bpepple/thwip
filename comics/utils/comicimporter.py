@@ -367,7 +367,7 @@ class ComicImporter(object):
 
         return True
 
-    def getSeries(self, api_url):
+    def getSeriesDetail(self, api_url):
         params = self.base_params
         params['field_list'] = self.series_fields
 
@@ -378,7 +378,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error(f'getSeries - {e}')
+            self.logger.error(f'getSeriesDetail - {e}')
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -508,6 +508,35 @@ class ComicImporter(object):
 
         return creator_obj
 
+    def getSeries(self, issueResponse):
+        series_cvid = issueResponse['results']['volume']['id']
+
+        series_obj, s_create = Series.objects.get_or_create(
+            cvid=int(series_cvid),)
+
+        if s_create:
+            series_url = issueResponse['results']['volume']['api_detail_url']
+            data = self.getSeriesDetail(series_url)
+            if data is not None:
+                # Create the slug & make sure it's not a duplicate
+                new_slug = orig = slugify(data['name'])
+                for x in itertools.count(1):
+                    if not Series.objects.filter(slug=new_slug).exists():
+                        break
+                    new_slug = f'{orig}-{x}'
+
+            sort_name = utils.create_series_sortname(data['name'])
+            series_obj.slug = new_slug
+            series_obj.cvurl = data['cvurl']
+            series_obj.name = data['name']
+            series_obj.sort_title = sort_name
+            series_obj.year = data['year']
+            series_obj.desc = data['desc']
+            series_obj.save()
+            self.logger.info(f'Added series: {series_obj}')
+
+        return series_obj
+
     def create_arc_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
@@ -593,34 +622,11 @@ class ComicImporter(object):
                     name=md.publisher,
                     slug=slugify(md.publisher),)
 
-            # Check the series cvid to see if we've already added
-            # the series. If not, call the detail api for it.
-            series_cvid = issue_response['results']['volume']['id']
-            if series_cvid is not None:
-                series_obj, s_create = Series.objects.get_or_create(
-                    cvid=int(series_cvid),)
-                if s_create:
-                    series_url = issue_response['results'][
-                        'volume']['api_detail_url']
-                    data = self.getSeries(series_url)
-                    if data is not None:
-                        # Create the slug & make sure it's not a duplicate
-                        new_slug = orig = slugify(data['name'])
-                        for x in itertools.count(1):
-                            if not Series.objects.filter(slug=new_slug).exists():
-                                break
-                            new_slug = f'{orig}-{x}'
-
-                        sort_name = utils.create_series_sortname(data['name'])
-                        series_obj.slug = new_slug
-                        series_obj.cvurl = data['cvurl']
-                        series_obj.name = data['name']
-                        series_obj.sort_title = sort_name
-                        series_obj.publisher = publisher_obj
-                        series_obj.year = data['year']
-                        series_obj.desc = data['desc']
-                        series_obj.save()
-                        self.logger.info(f'Added series: {series_obj}')
+            # Get/Create the series and if a publisher is available set it.
+            series_obj = self.getSeries(issue_response)
+            if publisher_obj:
+                series_obj.publisher = publisher_obj
+                series_obj.save()
 
             # Ugh, deal wih the timezone
             current_timezone = timezone.get_current_timezone()
