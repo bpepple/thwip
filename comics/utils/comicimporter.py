@@ -478,6 +478,36 @@ class ComicImporter(object):
 
         return story_obj
 
+    def getCreator(self, creatorResponse):
+        creator_obj, c_create = Creator.objects.get_or_create(
+            cvid=creatorResponse['id'],)
+
+        if c_create:
+            new_slug = orig = slugify(creatorResponse['name'])
+            for x in itertools.count(1):
+                if not Creator.objects.filter(slug=new_slug).exists():
+                    break
+                new_slug = f'{orig}-{x}'
+
+            creator_obj.name = creatorResponse['name']
+            creator_obj.slug = new_slug
+            creator_obj.save()
+
+            res = self.getDetailInfo(creator_obj,
+                                     self.creator_fields,
+                                     creatorResponse['api_detail_url'])
+
+            if creator_obj.image:
+                self.create_images(creator_obj, CREATORS_FOLDERS)
+
+            if res:
+                self.logger.info(f'Added creator: {creator_obj}')
+            else:
+                self.logger.info(
+                    f'No Creator detail info available for: {creator_obj}')
+
+        return creator_obj
+
     def create_arc_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
@@ -677,9 +707,7 @@ class ComicImporter(object):
 
             # Add the creators
             for p in issue_response['results']['person_credits']:
-                creator_obj, c_create = Creator.objects.get_or_create(
-                    cvid=p['id'],)
-
+                creator_obj = self.getCreator(p)
                 credits_obj = Credits.objects.create(
                     creator=creator_obj, issue=issue_obj)
 
@@ -689,30 +717,6 @@ class ComicImporter(object):
                     role = role.strip()
                     r, r_create = Role.objects.get_or_create(name=role.title())
                     credits_obj.role.add(r)
-
-                if c_create:
-                    new_slug = orig = slugify(p['name'])
-                    for x in itertools.count(1):
-                        if not Creator.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = f'{orig}-{x}'
-
-                    creator_obj.name = p['name']
-                    creator_obj.slug = new_slug
-                    creator_obj.save()
-
-                    res = self.getDetailInfo(creator_obj,
-                                             self.creator_fields,
-                                             p['api_detail_url'])
-
-                    if creator_obj.image:
-                        self.create_images(creator_obj, CREATORS_FOLDERS)
-
-                    if res:
-                        self.logger.info(f'Added creator: {creator_obj}')
-                    else:
-                        self.logger.info(
-                            f'No Creator detail info available for: {creator_obj}')
 
             return True
 
