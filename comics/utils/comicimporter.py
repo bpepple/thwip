@@ -576,6 +576,38 @@ class ComicImporter(object):
 
         return cvID
 
+    def createPubDate(self, day, month, year):
+        pub_date = None
+        if year is not None:
+            try:
+                new_day = 1
+                new_month = 1
+                if month is not None:
+                    new_month = int(month)
+                if day is not None:
+                    new_day = int(day)
+                new_year = int(year)
+                pub_date = datetime(new_year, new_month, new_day)
+            except:
+                pass
+
+        return pub_date
+
+    def createIssueSlug(self, pubDate, fixedNumber, seriesName):
+        if pubDate is not None:
+            slugy = seriesName + ' ' + fixedNumber + ' ' + str(pubDate.year)
+        else:
+            slugy = seriesName + ' ' + fixedNumber
+
+        new_slug = orig = slugify(slugy)
+
+        for x in itertools.count(1):
+            if not Issue.objects.filter(slug=new_slug).exists():
+                break
+            new_slug = f'{orig}-{x}'
+
+        return new_slug
+
     def getComicMetadata(self, path):
         # TODO: Need to fix the default image path
         ca = ComicArchive(path, default_image_path=None)
@@ -632,41 +664,17 @@ class ComicImporter(object):
             current_timezone = timezone.get_current_timezone()
             tz = timezone.make_aware(md.mod_ts, current_timezone)
 
-            pub_date = None
-            if md.year is not None:
-                try:
-                    day = 1
-                    month = 1
-                    if md.month is not None:
-                        month = int(md.month)
-                    if md.day is not None:
-                        day = int(md.day)
-                    year = int(md.year)
-                    pub_date = datetime(year, month, day)
-                except:
-                    pass
-
+            pub_date = self.createPubDate(md.day, md.month, md.year)
             fixed_number = IssueString(md.issue).asString(pad=3)
-
-            if pub_date is not None:
-                slugy = series_obj.name + ' ' + \
-                    fixed_number + ' ' + str(pub_date.year)
-            else:
-                slugy = series_obj.name + ' ' + fixed_number
-
-            new_slug = orig = slugify(slugy)
-
-            for x in itertools.count(1):
-                if not Issue.objects.filter(slug=new_slug).exists():
-                    break
-                new_slug = f'{orig}-{x}'
+            issue_slug = self.createIssueSlug(
+                pub_date, fixed_number, series_obj.name)
 
             try:
                 # Create the issue
                 issue_obj = Issue.objects.create(
                     file=md.path,
                     name=str(md.title),
-                    slug=new_slug,
+                    slug=issue_slug,
                     number=fixed_number,
                     date=pub_date,
                     page_count=md.page_count,
