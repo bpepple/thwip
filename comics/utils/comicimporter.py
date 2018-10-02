@@ -232,13 +232,25 @@ class ComicImporter(object):
 
         data = self.getCVObjectData(resp['results'])
 
-        # TODO: Check if storyarc exists and if not add it.
+        issue_obj = Issue.objects.get(cvid=cvid)
+        issue_obj.desc = data['desc']
+        issue_obj.name = data['name']
+        issue_obj.save()
 
-        issue = Issue.objects.get(cvid=cvid)
-        issue.desc = data['desc']
-        issue.name = data['name']
-        issue.save()
-        self.logger.info(f'Refreshed metadata for: {issue}')
+        # Clear any arcs the issue might have.
+        issue_obj.arcs.clear()
+
+        # Add any story arcs to the issue.
+        for arc in resp['results']['story_arc_credits']:
+            arc_obj = self.getStoryArc(arc)
+            if arc_obj:
+                issue_obj.arcs.add(arc_obj)
+
+        self.logger.info(f'Refreshed metadata for: {issue_obj}')
+        # TODO: Implement proper rate limiting of requests
+        # Let's manually slow down the number of requests so
+        # we don't go over the Comic Vine api limit.
+        time.sleep(10)
 
         return True
 
@@ -436,6 +448,36 @@ class ComicImporter(object):
 
         return True
 
+    def getStoryArc(self, arcResponse):
+        story_obj, s_create = Arc.objects.get_or_create(
+            cvid=arcResponse['id'],)
+
+        if s_create:
+            new_slug = orig = slugify(arcResponse['name'])
+            for x in itertools.count(1):
+                if not Arc.objects.filter(slug=new_slug).exists():
+                    break
+                new_slug = f'{orig}-{x}'
+
+            story_obj.name = arcResponse['name']
+            story_obj.slug = new_slug
+            story_obj.save()
+
+            res = self.getDetailInfo(story_obj,
+                                     self.arc_fields,
+                                     arcResponse['api_detail_url'])
+
+            if story_obj.image:
+                self.create_arc_images(story_obj, ARCS_FOLDER)
+
+            if res:
+                self.logger.info(f'Added storyarc: {story_obj}')
+            else:
+                self.logger.info(
+                    f'Not Story Arc detail info available for: {story_obj}')
+
+        return story_obj
+
     def create_arc_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
@@ -628,34 +670,10 @@ class ComicImporter(object):
                     self.logger.info(f'Added publisher: {publisher_obj}')
 
             # Add the storyarc.
-            for story_arc in issue_response['results']['story_arc_credits']:
-                story_obj, s_create = Arc.objects.get_or_create(
-                    cvid=story_arc['id'],)
-                issue_obj.arcs.add(story_obj)
-
-                if s_create:
-                    new_slug = orig = slugify(story_arc['name'])
-                    for x in itertools.count(1):
-                        if not Arc.objects.filter(slug=new_slug).exists():
-                            break
-                        new_slug = f'{orig}-{x}'
-
-                    story_obj.name = story_arc['name']
-                    story_obj.slug = new_slug
-                    story_obj.save()
-
-                    res = self.getDetailInfo(story_obj,
-                                             self.arc_fields,
-                                             story_arc['api_detail_url'])
-
-                    if story_obj.image:
-                        self.create_arc_images(story_obj, ARCS_FOLDER)
-
-                    if res:
-                        self.logger.info(f'Added storyarc: {story_obj}')
-                    else:
-                        self.logger.info(
-                            f'Not Story Arc detail info available for: {story_obj}')
+            for arc in issue_response['results']['story_arc_credits']:
+                arc_obj = self.getStoryArc(arc)
+                if arc_obj:
+                    issue_obj.arcs.add(arc_obj)
 
             # Add the creators
             for p in issue_response['results']['person_credits']:
