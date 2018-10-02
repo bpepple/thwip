@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from comics.tasks import refresh_issue_task
+from comics.tasks import refresh_issue_task, refresh_arc_task
 
-from .models import Creator, Credits, Issue, Publisher, Series, Settings
+from .models import Arc, Creator, Credits, Issue, Publisher, Series, Settings
 
 
 UNREAD = 0
@@ -16,6 +16,30 @@ def create_msg(rows_updated):
         message_bit = f"{rows_updated} items were"
 
     return message_bit
+
+
+@admin.register(Arc)
+class ArcAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+    readonly_fields = ('cvid', 'cvurl')
+    prepopulated_fields = {'slug': ('name',)}
+    actions = ['refresh_arc_metadata']
+    fieldsets = (
+        (None, {
+            'fields': ('cvid', 'cvurl', 'name', 'slug', 'desc', 'image')
+        }),
+    )
+
+    def refresh_arc_metadata(self, request, queryset):
+        rows_updated = 0
+        for arc in queryset:
+            success = refresh_arc_task(arc.cvid)
+            if success:
+                rows_updated += 1
+
+        message_bit = create_msg(rows_updated)
+        self.message_user(request, "%s successfully refreshed." % message_bit)
+    refresh_arc_metadata.short_description = 'Refresh selected Story Arcs metadata'
 
 
 @admin.register(Creator)
@@ -60,7 +84,9 @@ class IssueAdmin(admin.ModelAdmin):
             'fields': ('series', 'number', 'cvid', 'cvurl', 'name',
                        'slug', 'date', 'desc', 'image', 'status')
         }),
+        ('Related', {'fields': ('arcs', )}),
     )
+    filter_horizontal = ('arcs',)
 
     def get_queryset(self, request):
         queryset = (
@@ -86,6 +112,10 @@ class IssueAdmin(admin.ModelAdmin):
     def refresh_issue_metadata(self, request, queryset):
         rows_updated = 0
         for issue in queryset:
+            # Should probably make this an async call, but could
+            # most likely run into issues with exceeding the ComicVine
+            # API rate. Not to mention issues with timing of refresh for
+            # mutiple issues with the same storyarc being add/refreshed.
             success = refresh_issue_task(issue.cvid)
             if success:
                 rows_updated += 1
