@@ -23,6 +23,8 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
         .prefetch_related('issue_set')
     )
     serializer_class = ArcSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
     lookup_field = 'slug'
 
     @action(detail=True)
