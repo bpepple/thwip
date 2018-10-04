@@ -385,7 +385,7 @@ class ComicImporter(object):
 
         return data
 
-    def getPublisher(self, response_issue):
+    def getPublisherData(self, response_issue):
         series_params = self.base_params
         series_params['field_list'] = 'publisher'
 
@@ -396,7 +396,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error(f'getPublisher(volume) - {e}')
+            self.logger.error(f'getPublisherData(volume) - {e}')
             return None
 
         params = self.base_params
@@ -411,7 +411,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error(f'getPublisher(publisher) - {e}')
+            self.logger.error(f'getPublisherData(publisher) - {e}')
             return None
 
         data = self.getCVObjectData(response['results'])
@@ -537,6 +537,28 @@ class ComicImporter(object):
 
         return series_obj
 
+    def getPublisher(self, publisher, issueResponse):
+        publisher_obj, p_create = Publisher.objects.get_or_create(name=publisher,
+                                                                  slug=slugify(publisher),)
+
+        if p_create:
+            p = self.getPublisherData(issueResponse)
+            if p is not None:
+                publisher_obj.cvid = int(p['cvid'])
+                publisher_obj.cvurl = p['cvurl']
+                publisher_obj.desc = p['desc']
+                if p['image'] is not '':
+                    publisher_obj.image = utils.resize_images(p['image'],
+                                                              PUBLISHERS_FOLDER,
+                                                              NORMAL_IMG_WIDTH,
+                                                              NORMAL_IMG_HEIGHT)
+                    # Delete the original image
+                    os.remove(p['image'])
+                publisher_obj.save()
+            self.logger.info(f'Added publisher: {publisher_obj}')
+
+        return publisher_obj
+
     def create_arc_images(self, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
@@ -648,13 +670,11 @@ class ComicImporter(object):
             if issue_response is None:
                 return False
 
-            # Add the Publisher to the database.
+            # Get or create the Publisher.
             if md.publisher is not None:
-                publisher_obj, p_create = Publisher.objects.get_or_create(
-                    name=md.publisher,
-                    slug=slugify(md.publisher),)
+                publisher_obj = self.getPublisher(md.publisher, issue_response)
 
-            # Get/Create the series and if a publisher is available set it.
+            # Get or create the series and if a publisher is available set it.
             series_obj = self.getSeries(issue_response)
             if publisher_obj:
                 series_obj.publisher = publisher_obj
@@ -694,24 +714,6 @@ class ComicImporter(object):
             else:
                 self.logger.warning(
                     f'No detail information was saved for {issue_obj}')
-
-            # Adding new publisher we need to grab
-            # some additional data from Comic Vine.
-            if p_create:
-                p = self.getPublisher(issue_response)
-                if p is not None:
-                    publisher_obj.cvid = int(p['cvid'])
-                    publisher_obj.cvurl = p['cvurl']
-                    publisher_obj.desc = p['desc']
-                    if p['image'] is not '':
-                        publisher_obj.image = utils.resize_images(p['image'],
-                                                                  PUBLISHERS_FOLDER,
-                                                                  NORMAL_IMG_WIDTH,
-                                                                  NORMAL_IMG_HEIGHT)
-                        # Delete the original image
-                        os.remove(p['image'])
-                    publisher_obj.save()
-                    self.logger.info(f'Added publisher: {publisher_obj}')
 
             # Add the storyarc.
             for arc in issue_response['results']['story_arc_credits']:
