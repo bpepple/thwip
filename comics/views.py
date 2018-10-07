@@ -41,7 +41,7 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
             .filter(arcs__slug=arc.slug)
             .select_related('series')
             .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role', 'arcs')
-            .order_by('date', 'series')
+            .order_by('date', 'series', 'number')
         )
         page = self.paginate_queryset(queryset)
         if page is not None:
