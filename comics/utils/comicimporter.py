@@ -79,8 +79,8 @@ class ComicImporter(object):
         self.creator_fields = 'deck,description,id,image,name,site_detail_url'
         self.publisher_fields = 'deck,description,id,image,name,site_detail_url'
         self.series_fields = 'api_detail_url,deck,description,id,name,publisher,site_detail_url,start_year'
-        self.issue_fields = 'api_detail_url,cover_date,deck,description,id,image,issue_number,name,person_credits,site_detail_url,story_arc_credits,volume'
-        self.refresh_issue_fields = 'api_detail_url,cover_date,deck,description,id,issue_number,name,site_detail_url,story_arc_credits,volume'
+        self.issue_fields = 'api_detail_url,cover_date,deck,description,id,image,issue_number'
+        self.issue_fields += ',name,site_detail_url,story_arc_credits,volume,person_credits'
         # Initial Comic Book info to search
         self.style = MetaDataStyle.CIX
 
@@ -218,7 +218,7 @@ class ComicImporter(object):
 
     def refreshIssueData(self, cvid):
         issue_params = self.base_params
-        issue_params['field_list'] = self.refresh_issue_fields
+        issue_params['field_list'] = self.issue_fields
 
         try:
             resp = requests.get(
