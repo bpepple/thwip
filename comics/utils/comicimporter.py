@@ -233,6 +233,21 @@ class ComicImporter(object):
         data = self.getCVObjectData(resp['results'])
 
         issue_obj = Issue.objects.get(cvid=cvid)
+
+        # TODO: Makes sense to move the image refresh into a
+        #       separate function but for now let's leave it here.
+        if data['image'] != '':
+            # Delete the existing image before adding the new one.
+            if (issue_obj.image):
+                issue_obj.image.delete()
+            # Resize the image and save the new image then
+            # remove the original.
+            issue_obj.image = utils.resize_images(data['image'],
+                                                  ISSUES_FOLDER,
+                                                  NORMAL_IMG_WIDTH,
+                                                  NORMAL_IMG_HEIGHT)
+            os.remove(data['image'])
+
         issue_obj.desc = data['desc']
         issue_obj.name = data['name']
         issue_obj.save()
