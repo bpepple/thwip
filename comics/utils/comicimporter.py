@@ -247,6 +247,12 @@ class ComicImporter(object):
         # Add new issue credits
         self.addIssueCredits(cvid, resp['results']['person_credits'])
 
+        # Clear any arcs the issue might have.
+        issue_obj.arcs.clear()
+
+        # Add any story arcs.
+        self.addIssueStoryArcs(cvid, resp['results']['story_arc_credits'])
+
         # TODO: Makes sense to move the image refresh into a
         #       separate function but for now let's leave it here.
         if data['image'] != '':
@@ -264,15 +270,6 @@ class ComicImporter(object):
         issue_obj.desc = data['desc']
         issue_obj.name = data['name']
         issue_obj.save()
-
-        # Clear any arcs the issue might have.
-        issue_obj.arcs.clear()
-
-        # Add any story arcs to the issue.
-        for arc in resp['results']['story_arc_credits']:
-            arc_obj = self.getStoryArc(arc)
-            if arc_obj:
-                issue_obj.arcs.add(arc_obj)
 
         self.logger.info(f'Refreshed metadata for: {issue_obj}')
         # TODO: Implement proper rate limiting of requests
@@ -475,6 +472,13 @@ class ComicImporter(object):
         db_obj.save()
 
         return True
+
+    def addIssueStoryArcs(self, issue_cvid, arc_response):
+        issue_obj = Issue.objects.get(cvid=issue_cvid)
+        for arc in arc_response:
+            arc_obj = self.getStoryArc(arc)
+            if arc_obj:
+                issue_obj.arcs.add(arc_obj)
 
     def getStoryArc(self, arcResponse):
         story_obj, s_create = Arc.objects.get_or_create(
@@ -758,14 +762,12 @@ class ComicImporter(object):
                     f'No detail information was saved for {issue_obj}')
 
             # Add the storyarc.
-            for arc in issue_response['results']['story_arc_credits']:
-                arc_obj = self.getStoryArc(arc)
-                if arc_obj:
-                    issue_obj.arcs.add(arc_obj)
+            self.addIssueStoryArcs(issue_obj.cvid,
+                                   issue_response['results']['story_arc_credits'])
 
             # Add the creators
-            self.addIssueCredits(issue_obj.cvid, issue_response[
-                                 'results']['person_credits'])
+            self.addIssueCredits(issue_obj.cvid,
+                                 issue_response['results']['person_credits'])
 
             return True
 
