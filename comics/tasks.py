@@ -25,3 +25,11 @@ def refresh_arc_task(cvid):
     success = ci.refreshArcData(cvid)
 
     return success
+
+
+@shared_task
+def refresh_creator_task(cvid):
+    ci = ComicImporter()
+    success = ci.refreshCreatorData(cvid)
+
+    return success

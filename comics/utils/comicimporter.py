@@ -205,14 +205,20 @@ class ComicImporter(object):
 
         data = self.getCVObjectData(resp['results'])
 
-        # Currently I'm not refreshing the image until the
-        # cropping code is refactored, so let's remove the image.
-        os.remove(data['image'])
+        creator_obj = Creator.objects.get(cvid=cvid)
 
-        creator = Creator.objects.get(cvid=cvid)
-        creator.desc = data['desc']
-        creator.save()
-        self.logger.info(f'Refresh metadata for: {creator}')
+        if data['image'] != '':
+            if (creator_obj.image):
+                creator_obj.image.delete()
+            creator_obj.image = utils.resize_images(data['image'],
+                                                    CREATORS_FOLDERS,
+                                                    CREATOR_IMG_WIDTH,
+                                                    CREATOR_IMG_HEIGHT)
+            os.remove(data['image'])
+
+        creator_obj.desc = data['desc']
+        creator_obj.save()
+        self.logger.info(f'Refresh metadata for: {creator_obj}')
 
         return True
 

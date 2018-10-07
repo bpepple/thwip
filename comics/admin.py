@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from comics.tasks import refresh_issue_task, refresh_arc_task
+from comics.tasks import refresh_issue_task, refresh_arc_task, refresh_creator_task
 
 from .models import Arc, Creator, Credits, Issue, Publisher, Series, Settings
 
@@ -53,6 +53,17 @@ class CreatorAdmin(admin.ModelAdmin):
             'fields': ('cvid', 'cvurl', 'name', 'slug', 'desc', 'image')
         }),
     )
+
+    def refresh_creator_metadata(self, request, queryset):
+        rows_updated = 0
+        for creator in queryset:
+            success = refresh_creator_task(creator.cvid)
+            if success:
+                rows_updated += 1
+
+        message_bit = create_msg(rows_updated)
+        self.message_user(request, "%s successfully refreshed." % message_bit)
+    refresh_creator_metadata.short_description = 'Refresh selected Creator metadata'
 
 
 @admin.register(Credits)
