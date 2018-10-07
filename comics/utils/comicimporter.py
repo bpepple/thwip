@@ -241,6 +241,12 @@ class ComicImporter(object):
 
         issue_obj = Issue.objects.get(cvid=cvid)
 
+        # Delete any existing issue credits.
+        Credits.objects.filter(issue=issue_obj).delete()
+
+        # Add new issue credits
+        self.addIssueCredits(cvid, resp['results']['person_credits'])
+
         # TODO: Makes sense to move the image refresh into a
         #       separate function but for now let's leave it here.
         if data['image'] != '':
@@ -500,6 +506,20 @@ class ComicImporter(object):
 
         return story_obj
 
+    def addIssueCredits(self, issue_cvid, credits_response):
+        issue_obj = Issue.objects.get(cvid=issue_cvid)
+        for p in credits_response:
+            creator_obj = self.getCreator(p)
+            credits_obj = Credits.objects.create(
+                creator=creator_obj, issue=issue_obj)
+
+            roles = p['role'].split(',')
+            for role in roles:
+                # Remove any whitespace
+                role = role.strip()
+                r, r_create = Role.objects.get_or_create(name=role.title())
+                credits_obj.role.add(r)
+
     def getCreator(self, creatorResponse):
         creator_obj, c_create = Creator.objects.get_or_create(
             cvid=creatorResponse['id'],)
@@ -744,17 +764,8 @@ class ComicImporter(object):
                     issue_obj.arcs.add(arc_obj)
 
             # Add the creators
-            for p in issue_response['results']['person_credits']:
-                creator_obj = self.getCreator(p)
-                credits_obj = Credits.objects.create(
-                    creator=creator_obj, issue=issue_obj)
-
-                roles = p['role'].split(',')
-                for role in roles:
-                    # Remove any whitespace
-                    role = role.strip()
-                    r, r_create = Role.objects.get_or_create(name=role.title())
-                    credits_obj.role.add(r)
+            self.addIssueCredits(issue_obj.cvid, issue_response[
+                                 'results']['person_credits'])
 
             return True
 
