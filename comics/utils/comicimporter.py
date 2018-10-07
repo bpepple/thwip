@@ -216,6 +216,7 @@ class ComicImporter(object):
                                                     CREATOR_IMG_HEIGHT)
             os.remove(data['image'])
 
+        creator_obj.name = data['name']
         creator_obj.desc = data['desc']
         creator_obj.save()
         self.logger.info(f'Refresh metadata for: {creator_obj}')
