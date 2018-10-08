@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from comics.tasks import refresh_issue_task, refresh_arc_task, refresh_creator_task
+from comics.tasks import (refresh_issue_task, refresh_arc_task,
+                          refresh_creator_task, refresh_issue_credits_task)
 
 from .models import Arc, Creator, Credits, Issue, Publisher, Series, Settings
 
@@ -89,7 +90,8 @@ class IssueAdmin(admin.ModelAdmin):
     list_filter = ('import_date', 'date', 'status')
     list_select_related = ('series',)
     date_hierarchy = 'date'
-    actions = ['mark_as_read', 'mark_as_unread', 'refresh_issue_metadata']
+    actions = ['mark_as_read', 'mark_as_unread', 'refresh_issue_metadata',
+               'refresh_issue_credits']
     fieldsets = (
         (None, {
             'fields': ('series', 'number', 'cvid', 'cvurl', 'name',
@@ -135,6 +137,18 @@ class IssueAdmin(admin.ModelAdmin):
         self.message_user(
             request, f"{message_bit} metadata successfuly refreshed.")
     refresh_issue_metadata.short_description = 'Refresh selected issues metadata'
+
+    def refresh_issue_credits(self, request, queryset):
+        rows_updated = 0
+        for issue in queryset:
+            success = refresh_issue_credits_task(issue.cvid)
+            if success:
+                rows_updated += 1
+
+        message_bit = create_msg(rows_updated)
+        self.message_user(request,
+                          f"{message_bit} credits successfuly refreshed.")
+    refresh_issue_credits.short_description = 'Refresh selected issues credits'
 
 
 @admin.register(Publisher)

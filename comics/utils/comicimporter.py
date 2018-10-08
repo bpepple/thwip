@@ -241,12 +241,6 @@ class ComicImporter(object):
 
         issue_obj = Issue.objects.get(cvid=cvid)
 
-        # Delete any existing issue credits.
-        Credits.objects.filter(issue=issue_obj).delete()
-
-        # Add new issue credits
-        self.addIssueCredits(cvid, resp['results']['person_credits'])
-
         # Clear any arcs the issue might have.
         issue_obj.arcs.clear()
 
@@ -272,6 +266,36 @@ class ComicImporter(object):
         issue_obj.save()
 
         self.logger.info(f'Refreshed metadata for: {issue_obj}')
+        # TODO: Implement proper rate limiting of requests
+        # Let's manually slow down the number of requests so
+        # we don't go over the Comic Vine api limit.
+        time.sleep(10)
+
+        return True
+
+    def refreshIssueCreditsData(self, cvid):
+        issue_params = self.base_params
+        issue_params['field_list'] = 'person_credits'
+
+        try:
+            resp = requests.get(
+                self.baseurl + '/issue/' + CVTypeID.Issue + '-' + str(cvid),
+                params=issue_params,
+                headers=self.headers,
+            ).json()
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f'refreshIssueCredits - {e}')
+            return False
+
+        issue_obj = Issue.objects.get(cvid=cvid)
+
+        # Delete any existing issue credits.
+        Credits.objects.filter(issue=issue_obj).delete()
+
+        # Add new issue credits
+        self.addIssueCredits(cvid, resp['results']['person_credits'])
+
+        self.logger.info(f'Refreshed credits for: {issue_obj}')
         # TODO: Implement proper rate limiting of requests
         # Let's manually slow down the number of requests so
         # we don't go over the Comic Vine api limit.
