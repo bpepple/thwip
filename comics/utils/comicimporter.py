@@ -203,6 +203,9 @@ class ComicImporter(object):
             self.logger.error(f'refreshCreatorData - {e}')
             return False
 
+        if not (resp['results']):
+            return False
+
         data = self.getCVObjectData(resp['results'])
 
         creator_obj = Creator.objects.get(cvid=cvid)
@@ -235,6 +238,9 @@ class ComicImporter(object):
             ).json()
         except requests.exceptions.RequestException as e:
             self.logger.error(f'refreshIssueData - {e}')
+            return False
+
+        if not (resp['results']):
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -287,6 +293,9 @@ class ComicImporter(object):
             self.logger.error(f'refreshIssueCredits - {e}')
             return False
 
+        if not (resp['results']):
+            return False
+
         issue_obj = Issue.objects.get(cvid=cvid)
 
         # Delete any existing issue credits.
@@ -317,6 +326,9 @@ class ComicImporter(object):
             self.logger.error(f'refreshSeriesData - {e}')
             return False
 
+        if not (resp['results']):
+            return False
+
         data = self.getCVObjectData(resp['results'])
 
         series = Series.objects.get(cvid=cvid)
@@ -340,6 +352,9 @@ class ComicImporter(object):
             ).json()
         except requests.exceptions.RequestException as e:
             self.logger.error(f'refreshPublisherData - {e}')
+            return False
+
+        if not (resp['results']):
             return False
 
         data = self.getCVObjectData(resp['results'])
@@ -368,6 +383,9 @@ class ComicImporter(object):
             ).json()
         except requests.exceptions.RequestException as e:
             self.logger.error('%s' % e)
+            return False
+
+        if not (resp['results']):
             return False
 
         data = self.getCVObjectData(resp['results'])
