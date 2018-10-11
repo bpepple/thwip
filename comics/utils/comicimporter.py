@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.text import slugify
+from ratelimit import limits, sleep_and_retry
 import requests
 import requests_cache
 
@@ -21,7 +22,6 @@ from . import utils
 from .comicapi.comicarchive import MetaDataStyle, ComicArchive
 from .comicapi.issuestring import IssueString
 
-import time
 
 ARCS_FOLDER = 'arcs'
 CREATORS_FOLDERS = 'creators'
@@ -33,6 +33,8 @@ CREATOR_IMG_HEIGHT = 64
 
 NORMAL_IMG_WIDTH = 640
 NORMAL_IMG_HEIGHT = 960
+
+ONE_MINUTE = 60
 
 
 def get_recursive_filelist(pathlist):
@@ -189,6 +191,8 @@ class ComicImporter(object):
 
         return data
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshCreatorData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.creator_fields
@@ -226,6 +230,8 @@ class ComicImporter(object):
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshIssueData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.issue_fields
@@ -272,13 +278,11 @@ class ComicImporter(object):
         issue_obj.save()
 
         self.logger.info(f'Refreshed metadata for: {issue_obj}')
-        # TODO: Implement proper rate limiting of requests
-        # Let's manually slow down the number of requests so
-        # we don't go over the Comic Vine api limit.
-        time.sleep(10)
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshIssueCreditsData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = 'person_credits'
@@ -305,13 +309,11 @@ class ComicImporter(object):
         self.addIssueCredits(cvid, resp['results']['person_credits'])
 
         self.logger.info(f'Refreshed credits for: {issue_obj}')
-        # TODO: Implement proper rate limiting of requests
-        # Let's manually slow down the number of requests so
-        # we don't go over the Comic Vine api limit.
-        time.sleep(10)
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshSeriesData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.series_fields
@@ -339,6 +341,8 @@ class ComicImporter(object):
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshPublisherData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.publisher_fields
@@ -370,6 +374,8 @@ class ComicImporter(object):
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def refreshArcData(self, cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.arc_fields
@@ -401,6 +407,8 @@ class ComicImporter(object):
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def getIssue(self, issue_cvid):
         issue_params = self.base_params
         issue_params['field_list'] = self.issue_fields
@@ -434,6 +442,8 @@ class ComicImporter(object):
 
         return True
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def getSeriesDetail(self, api_url):
         params = self.base_params
         params['field_list'] = self.series_fields
@@ -452,6 +462,8 @@ class ComicImporter(object):
 
         return data
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def getPublisherData(self, response_issue):
         series_params = self.base_params
         series_params['field_list'] = 'publisher'
@@ -485,6 +497,8 @@ class ComicImporter(object):
 
         return data
 
+    @sleep_and_retry
+    @limits(calls=7, period=ONE_MINUTE)
     def getDetailInfo(self, db_obj, fields, api_url):
         params = self.base_params
         params['field_list'] = fields
@@ -816,9 +830,6 @@ class ComicImporter(object):
     def commitMetadataList(self, md_list):
         for md in md_list:
             self.addComicFromMetadata(md)
-            # Since we are only hitting 2 ComicVine resources let's
-            # limit the number of requests to approx. < 600 an hour.
-            time.sleep(6)
 
     def import_comic_files(self):
         filelist = get_recursive_filelist(self.directory_path)
