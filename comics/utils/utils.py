@@ -1,19 +1,34 @@
+import logging
 import os
-import uuid
 import re
-from bs4 import BeautifulSoup
+import uuid
 
 from PIL import Image
+from bs4 import BeautifulSoup
 from django.conf import settings
+
 
 def resize_images(path, folder, width, height):
     if path:
         # Split width and height
         crop_width = width
         crop_height = height
+        # Directory permission
+        access_rights = 0o755
 
         old_filename = os.path.basename(str(path))
         (shortname, ext) = os.path.splitext(old_filename)
+
+        # Create the image directory if needed
+        save_directory = settings.MEDIA_ROOT + '/images/' + folder
+        if not os.path.isdir(save_directory):
+            try:
+                os.makedirs(save_directory, access_rights)
+            except OSError:
+                logger = logging.getLogger('thwip')
+                logger.error(
+                    f'Creation of the directory {save_directory} failed')
+
         # 18 characters should be more than enough.
         new_filename = str(uuid.uuid4())
         cache_path = 'images/' + folder + '/' + new_filename + ext

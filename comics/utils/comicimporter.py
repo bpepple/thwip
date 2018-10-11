@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import itertools
 import json
 import logging
@@ -23,10 +23,11 @@ from .comicapi.comicarchive import MetaDataStyle, ComicArchive
 from .comicapi.issuestring import IssueString
 
 
-ARCS_FOLDER = 'arcs'
-CREATORS_FOLDERS = 'creators'
-ISSUES_FOLDER = 'issues'
-PUBLISHERS_FOLDER = 'publishers'
+today = date.today()
+ARCS_FOLDER = today.strftime('arcs/%Y/%m/%d')
+CREATORS_FOLDERS = today.strftime('creators/%Y/%m/%d')
+ISSUES_FOLDER = today.strftime('issues/%Y/%m/%d')
+PUBLISHERS_FOLDER = today.strftime('publishers/%Y/%m/%d')
 
 CREATOR_IMG_WIDTH = 64
 CREATOR_IMG_HEIGHT = 64

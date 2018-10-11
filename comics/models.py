@@ -44,7 +44,7 @@ class Arc(models.Model):
     name = models.CharField('Arc Name', max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
-    image = models.ImageField(upload_to='images/arcs/',
+    image = models.ImageField(upload_to='images/arcs/%Y/%m/%d/',
                               max_length=150, blank=True)
 
     def get_absolute_url(self):
@@ -82,7 +82,7 @@ class Creator(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
     image = models.ImageField(
-        upload_to='images/creators/', max_length=150, blank=True)
+        upload_to='images/creators/%Y/%m/%d/', max_length=150, blank=True)
 
     def __str__(self):
         return self.name
@@ -97,8 +97,8 @@ class Publisher(models.Model):
     name = models.CharField('Series Name', max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     desc = models.TextField('Description', max_length=500, blank=True)
-    image = models.ImageField(
-        upload_to='images/publishers/', max_length=150, blank=True)
+    image = models.ImageField(upload_to='images/publishers/%Y/%m/%d/',
+                              max_length=150, blank=True)
 
     def get_absolute_url(self):
         return reverse('api:publisher-detail', args=[self.slug])
@@ -175,8 +175,8 @@ class Issue(models.Model):
     arcs = models.ManyToManyField(Arc, blank=True)
     creators = models.ManyToManyField(Creator, through='Credits', blank=True)
     file = models.CharField('File Path', max_length=300)
-    image = models.ImageField(
-        'Cover Image', upload_to='images/issues/', max_length=150, blank=True)
+    image = models.ImageField('Cover Image', upload_to='images/issues/%Y/%m/%d/',
+                              max_length=150, blank=True)
     status = models.PositiveSmallIntegerField(
         'Status', choices=STATUS_CHOICES, default=0, blank=True)
     leaf = models.PositiveSmallIntegerField(
