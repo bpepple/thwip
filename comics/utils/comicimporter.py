@@ -397,14 +397,21 @@ class ComicImporter(object):
 
         data = self.getCVObjectData(resp['results'])
 
-        # Currently I'm not refreshing the image until the
-        # cropping code is refactored, so let's remove the image.
-        os.remove(data['image'])
+        arc_obj = Arc.objects.get(cvid=cvid)
 
-        arc = Arc.objects.get(cvid=cvid)
-        arc.desc = data['desc']
-        arc.save()
-        self.logger.info(f'Refreshed metadata for: {arc}')
+        if data['image'] != '':
+            if (arc_obj.image):
+                arc_obj.image.delete()
+
+            arc_obj.image = utils.resize_images(data['image'],
+                                                ARCS_FOLDER,
+                                                NORMAL_IMG_WIDTH,
+                                                NORMAL_IMG_HEIGHT)
+            os.remove(data['image'])
+
+        arc_obj.desc = data['desc']
+        arc_obj.save()
+        self.logger.info(f'Refreshed metadata for: {arc_obj}')
 
         return True
 
