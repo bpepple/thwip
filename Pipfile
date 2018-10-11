@@ -18,6 +18,7 @@ django-cors-headers = "*"
 celery = "*"
 coreapi = "*"
 djangorestframework-jwt = "*"
+ratelimit = "*"
 
 [dev-packages]
 coverage = "*"
