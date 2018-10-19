@@ -37,8 +37,7 @@ class ArcViewSet(viewsets.ReadOnlyModelViewSet):
         # since the Comic Vine api doesn't appear to provide
         # the story arc reading order.
         queryset = (
-            Issue.objects
-            .filter(arcs__slug=arc.slug)
+            arc.issue_set
             .select_related('series')
             .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role', 'arcs')
             .order_by('date', 'series', 'number')
