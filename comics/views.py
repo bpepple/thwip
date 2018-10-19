@@ -143,8 +143,7 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         publisher = self.get_object()
         queryset = (
-            Series.objects
-            .filter(publisher__slug=publisher.slug)
+            publisher.series_set
             .select_related('publisher')
             .prefetch_related('issue_set')
         )
