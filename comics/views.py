@@ -165,7 +165,6 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = (
         Series.objects
-        .select_related('publisher')
         .prefetch_related('issue_set')
     )
     serializer_class = SeriesSerializer
