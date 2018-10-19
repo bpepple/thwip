@@ -181,8 +181,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         """
         series = self.get_object()
         queryset = (
-            Issue.objects
-            .filter(series__slug=series.slug)
+            series.issue_set
             .select_related('series')
             .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role', 'arcs')
         )
