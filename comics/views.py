@@ -181,7 +181,6 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         series = self.get_object()
         queryset = (
             series.issue_set
-            .select_related('series')
             .prefetch_related('credits_set', 'credits_set__creator', 'credits_set__role', 'arcs')
         )
         page = self.paginate_queryset(queryset)
