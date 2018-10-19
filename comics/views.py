@@ -144,7 +144,6 @@ class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
         publisher = self.get_object()
         queryset = (
             publisher.series_set
-            .select_related('publisher')
             .prefetch_related('issue_set')
         )
         page = self.paginate_queryset(queryset)
