@@ -440,10 +440,12 @@ class ComicImporter(object):
 
         issue = Issue.objects.get(cvid=issue_cvid)
         if data['image'] != '':
-            issue.image = utils.resize_images(data['image'],
-                                              ISSUES_FOLDER,
-                                              NORMAL_IMG_WIDTH,
-                                              NORMAL_IMG_HEIGHT)
+            img = utils.resize_images(data['image'],
+                                      ISSUES_FOLDER,
+                                      NORMAL_IMG_WIDTH,
+                                      NORMAL_IMG_HEIGHT)
+            if img:
+                issue.image = img
             os.remove(data['image'])
         issue.desc = data['desc']
         issue.save()
