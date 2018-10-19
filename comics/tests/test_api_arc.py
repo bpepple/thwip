@@ -11,7 +11,7 @@ from rest_framework_jwt.compat import get_user_model
 
 from comics.models import Arc, Issue, Publisher, Series, Settings
 from comics.serializers import ArcSerializer
-from comics.tasks import refresh_issue_task, refresh_issue_credits_task, refresh_arc_task
+from comics.tasks import refresh_issue_task, refresh_arc_task
 
 
 issue_date = timezone.now().date()
@@ -138,5 +138,8 @@ class GetSingleArcTest(TestCase):
         desc += "Superboy of Earth-Prime, and Alexander Luthor of Earth-Three. What resulted was the *Infinite Crisis.*"
         refresh_arc_task(self.crisis.cvid)
         self.crisis.refresh_from_db()
+        # Clean up the image
+        if (self.crisis.image):
+            self.crisis.image.delete()
 
         self.assertEqual(self.crisis.desc, desc)
