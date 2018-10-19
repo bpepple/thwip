@@ -55,8 +55,6 @@ class IssueArcSerializer(serializers.ModelSerializer):
 
 
 class IssueSerializer(serializers.ModelSerializer):
-    series = serializers.SlugRelatedField(many=False, read_only=True,
-                                          slug_field='slug')
     credits = CreditsSerializer(source='credits_set', many=True,
                                 read_only=True)
     arcs = IssueArcSerializer(many=True, read_only=True)
@@ -65,11 +63,11 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('id', '__str__', 'slug', 'cvurl', 'series', 'name', 'number', 'date',
-                  'leaf', 'page_count', 'percent_read', 'status', 'desc', 'image', 'arcs',
-                  'credits')
-        read_only_fields = ('id', '__str__', 'slug', 'cvurl', 'name', 'number', 'date',
-                            'page_count', 'desc', 'image')
+        fields = ('id', '__str__', 'slug', 'name', 'number', 'date', 'leaf',
+                  'page_count', 'percent_read', 'status', 'desc', 'image',
+                  'arcs', 'credits')
+        read_only_fields = ('id', '__str__', 'slug', 'cvurl', 'name',
+                            'number', 'date', 'page_count', 'desc', 'image')
         lookup_field = 'slug'
 
 
