@@ -173,7 +173,7 @@ class ComicArchive:
             if sort_list:
                 def keyfunc(k):
                     return k.lower()
-                files = natsorted(files, key=keyfunc, signed=False)
+                files = natsorted(files, key=keyfunc)
 
             # make a sub-list of image files
             self.page_list = []
