@@ -21,7 +21,6 @@ import zipfile
 from natsort import natsorted
 
 from .comicinfoxml import ComicInfoXML
-from .filenameparser import FileNameParser
 from .genericmetadata import GenericMetadata
 
 
@@ -232,27 +231,3 @@ class ComicArchive:
             else:
                 self.has_cix = False
         return self.has_cix
-
-    def metadataFromFilename(self, parse_scan_info=True):
-        metadata = GenericMetadata()
-
-        fnp = FileNameParser()
-        fnp.parseFilename(self.path)
-
-        if fnp.issue != "":
-            metadata.issue = fnp.issue
-        if fnp.series != "":
-            metadata.series = fnp.series
-        if fnp.volume != "":
-            metadata.volume = fnp.volume
-        if fnp.year != "":
-            metadata.year = fnp.year
-        if fnp.issue_count != "":
-            metadata.issueCount = fnp.issue_count
-        if parse_scan_info:
-            if fnp.remainder != "":
-                metadata.scanInfo = fnp.remainder
-
-        metadata.isEmpty = False
-
-        return metadata

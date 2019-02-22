@@ -755,15 +755,11 @@ class ComicImporter(object):
 
             if style is not None:
                 md = ca.readMetadata(style)
-            else:
-                # No metadata in comic. Make some guesses from filename.
-                md = ca.metadataFromFilename()
+                md.path = ca.path
+                md.page_count = ca.page_count
+                md.mod_ts = datetime.utcfromtimestamp(os.path.getmtime(ca.path))
 
-            md.path = ca.path
-            md.page_count = ca.page_count
-            md.mod_ts = datetime.utcfromtimestamp(os.path.getmtime(ca.path))
-
-            return md
+                return md
         return None
 
     def addComicFromMetadata(self, md):
