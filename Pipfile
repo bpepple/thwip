@@ -23,6 +23,7 @@ psycopg2 = "*"
 [dev-packages]
 coverage = "*"
 django-debug-toolbar = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"
