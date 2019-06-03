@@ -389,7 +389,7 @@ class ComicImporter(object):
                 headers=self.headers,
             ).json()
         except requests.exceptions.RequestException as e:
-            self.logger.error('%s' % e)
+            self.logger.error('%s', e)
             return False
 
         if not (resp['results']):
@@ -587,7 +587,7 @@ class ComicImporter(object):
             for role in roles:
                 # Remove any whitespace
                 role = role.strip()
-                r, r_create = Role.objects.get_or_create(name=role.title())
+                r, _ = Role.objects.get_or_create(name=role.title())
                 credits_obj.role.add(r)
 
     def getCreator(self, creatorResponse):
