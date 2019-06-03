@@ -17,7 +17,7 @@ def resize_images(path, folder, width, height):
         access_rights = 0o755
 
         old_filename = os.path.basename(str(path))
-        (shortname, ext) = os.path.splitext(old_filename)
+        (_, ext) = os.path.splitext(old_filename)
 
         # Create the image directory if needed
         save_directory = settings.MEDIA_ROOT + '/images/' + folder
@@ -50,7 +50,7 @@ def resize_images(path, folder, width, height):
 
             cropped = crop_from_center(img, crop_width, crop_height)
             cropped.save(new_path)
-        except Exception:
+        except IOError:
             # Save as blank instead of None for bad images.
             new_url = ''
 
@@ -180,7 +180,7 @@ def test_image(image_path):
         img = Image.open(image_path)
         img.verify()
         path = image_path
-    except Exception:
+    except IOError:
         pass
 
     return path
