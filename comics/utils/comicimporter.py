@@ -23,11 +23,11 @@ from .comicapi.comicarchive import MetaDataStyle, ComicArchive
 from .comicapi.issuestring import IssueString
 
 
-today = date.today()
-ARCS_FOLDER = today.strftime('arcs/%Y/%m/%d')
-CREATORS_FOLDERS = today.strftime('creators/%Y/%m/%d')
-ISSUES_FOLDER = today.strftime('issues/%Y/%m/%d')
-PUBLISHERS_FOLDER = today.strftime('publishers/%Y/%m/%d')
+TODAY = date.today()
+ARCS_FOLDER = TODAY.strftime('arcs/%Y/%m/%d')
+CREATORS_FOLDERS = TODAY.strftime('creators/%Y/%m/%d')
+ISSUES_FOLDER = TODAY.strftime('issues/%Y/%m/%d')
+PUBLISHERS_FOLDER = TODAY.strftime('publishers/%Y/%m/%d')
 
 CREATOR_IMG_WIDTH = 64
 CREATOR_IMG_HEIGHT = 64
@@ -42,7 +42,7 @@ def get_recursive_filelist(pathlist):
     # Get a recursive list of all files under all path items in the list.
     filelist = []
     if os.path.isdir(pathlist):
-        for root, dirs, files in os.walk(pathlist):
+        for root, _, files in os.walk(pathlist):
             for f in files:
                 filelist.append(os.path.join(root, f))
     return filelist
