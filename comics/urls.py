@@ -1,3 +1,6 @@
+"""
+Django router urls
+"""
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
@@ -8,15 +11,15 @@ from comics.views import (ArcViewSet, IssueViewSet,
                           PublisherViewSet, SeriesViewSet)
 
 
-router = routers.DefaultRouter()
-router.register('arc', ArcViewSet)
-router.register('issue', IssueViewSet)
-router.register('publisher', PublisherViewSet)
-router.register('series', SeriesViewSet)
+ROUTER = routers.DefaultRouter()
+ROUTER.register('arc', ArcViewSet)
+ROUTER.register('issue', IssueViewSet)
+ROUTER.register('publisher', PublisherViewSet)
+ROUTER.register('series', SeriesViewSet)
 
 app_name = 'api'
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('api/', include(ROUTER.urls)),
     path('api-token-auth/', obtain_jwt_token)
 ]
 
