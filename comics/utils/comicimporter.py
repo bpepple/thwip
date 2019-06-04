@@ -533,7 +533,7 @@ class ComicImporter(object):
         # If the image name from Comic Vine is too large, don't save it since it will
         # cause a DB error. Using 132 as the value since that will take into account the
         # upload_to value from the longest model (Pubishers).
-        if (len(data['image']) < 132):
+        if data['image'] is not None and (len(data['image']) < 132):
             db_obj.image = data['image']
         db_obj.save()
 
@@ -757,7 +757,8 @@ class ComicImporter(object):
                 md = ca.readMetadata(style)
                 md.path = ca.path
                 md.page_count = ca.page_count
-                md.mod_ts = datetime.utcfromtimestamp(os.path.getmtime(ca.path))
+                md.mod_ts = datetime.utcfromtimestamp(
+                    os.path.getmtime(ca.path))
 
                 return md
         return None
