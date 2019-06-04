@@ -49,12 +49,18 @@ def resize_images(path, folder, width, height):
                 img = img.resize((crop_width, height_size), Image.BICUBIC)
 
             cropped = crop_from_center(img, crop_width, crop_height)
-            cropped.save(new_path)
+            try:
+                cropped.save(new_path)
+            except ValueError:
+                new_url = ''
+                print(f'Unable to crop: {os.path.basename(new_path)}')
         except IOError:
             # Save as blank instead of None for bad images.
             new_url = ''
 
-    return new_url
+        return new_url
+    else:
+        return None
 
 
 def crop_from_center(image, width, height):
@@ -158,6 +164,7 @@ def cleanup_html(string, remove_html_tables):
                 table_strings.append(table_text)
 
             newstring = newstring.format(*table_strings)
+        
         except:
             # we caught an error rebuilding the table.
             # just bail and remove the formatting
