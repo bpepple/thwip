@@ -164,7 +164,7 @@ def cleanup_html(string, remove_html_tables):
                 table_strings.append(table_text)
 
             newstring = newstring.format(*table_strings)
-        
+
         except:
             # we caught an error rebuilding the table.
             # just bail and remove the formatting
