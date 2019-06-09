@@ -8,8 +8,8 @@ from .comicapi.comicarchive import ComicArchive
 
 
 class ImageAPIHandler(object):
-
-    def getContentType(self, image_data):
+    @classmethod
+    def getContentType(cls, image_data):
         img = 'jpg'
         imtype = imghdr.what(None, image_data)
         if imtype is not None:
@@ -17,7 +17,8 @@ class ImageAPIHandler(object):
 
         return img
 
-    def resizeImage(self, max_height, image_data):
+    @classmethod
+    def resizeImage(cls, max_height, image_data):
         i = Image.open(io.BytesIO(image_data))
         w, h = i.size
         if max_height < h:
