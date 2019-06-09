@@ -671,7 +671,8 @@ class ComicImporter(object):
 
         return publisher_obj
 
-    def create_arc_images(self, db_obj, img_dir):
+    @classmethod
+    def create_arc_images(cls, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
         db_obj.image = utils.resize_images(db_obj.image, img_dir,
@@ -680,7 +681,8 @@ class ComicImporter(object):
         os.remove(old_image_path)
 
     # Only the Creators are using this right now.
-    def create_images(self, db_obj, img_dir):
+    @classmethod
+    def create_images(cls, db_obj, img_dir):
         base_name = os.path.basename(db_obj.image.name)
         old_image_path = settings.MEDIA_ROOT + '/images/' + base_name
         db_obj.image = utils.resize_images(db_obj.image, img_dir,
@@ -688,7 +690,8 @@ class ComicImporter(object):
         db_obj.save()
         os.remove(old_image_path)
 
-    def getIssueCVID(self, md):
+    @classmethod
+    def getIssueCVID(cls, md):
         # Get the issues cvid
         # TODO: Need to clean this up a bit, but for now it works.
         cvID = None
@@ -710,7 +713,8 @@ class ComicImporter(object):
 
         return cvID
 
-    def createPubDate(self, day, month, year):
+    @classmethod
+    def createPubDate(cls, day, month, year):
         pub_date = None
         if year is not None:
             try:
@@ -727,7 +731,8 @@ class ComicImporter(object):
 
         return pub_date
 
-    def createIssueSlug(self, pubDate, fixedNumber, seriesName):
+    @classmethod
+    def createIssueSlug(cls, pubDate, fixedNumber, seriesName):
         if pubDate is not None:
             slugy = seriesName + ' ' + fixedNumber + ' ' + str(pubDate.year)
         else:

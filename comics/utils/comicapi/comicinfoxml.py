@@ -26,7 +26,8 @@ class ComicInfoXML(object):
 
         return self.convertXMLToMetadata(tree)
 
-    def convertXMLToMetadata(self, tree):
+    @classmethod
+    def convertXMLToMetadata(cls, tree):
 
         root = tree.getroot()
 
